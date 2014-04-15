@@ -64,7 +64,7 @@ main:
 	syscall					#print our prompt
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our file path
-	j keysched				#call key_schedule
+	jal keysched			#call key_schedule
 	#TODO: start reading in file
 	#TODO: call relevant functions
 	j finish				#this line will go away eventually, but for now is here to prevent excess execution.
@@ -91,20 +91,29 @@ f:
 	jr $ra					#jump back to where we came here from.
 
 encrypt:
-
+	add $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
+	#TODO: the meat of encrypt
+	add $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
+	jr $ra
 
 decrypt:
-
+	add $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
+	#TODO: the meat of decrypt
+	add $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
+	jr $ra
 
 keysched:
-
+	add $s1, $zero, $ra		#copy ra into s1 so we can jump to other functions while here and still get back correctly
+	#TODO: the meat of keysched
+	add $ra, $zero, $s1		#copy s1 back to ra to return to (hopefully) main
+	jr $ra
 
 testinput:
 	li $t0, 1				#load 1 into t0
 	bne $v0, $t0, tt		#test v0 against t0 (1). if they're unequal, go to where we test it against 2.
 	jr $ra					#otherwise, return to where we came from
-tt: li $t0, 2				#load 2 into t0
-	bne $v0, $t0, invalid	#if v0 and t0 are still unequal we got neither 1 nor 2, input invalid.
+tt:		li $t0, 2				#load 2 into t0
+		bne $v0, $t0, invalid	#if v0 and t0 are still unequal we got neither 1 nor 2, input invalid.
 	jr $ra					#otherwise, jump back to where we came from
 
 invalid:
