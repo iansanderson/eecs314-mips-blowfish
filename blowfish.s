@@ -65,8 +65,9 @@ main:
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our file path
 	#TODO: start reading in file
+	#TODO: set a0 and a1 to reasonable values before calling keysched
 	jal keysched			#call key_schedule
-	j finish				#this line will go away eventually, but for now is here to prevent excess execution.
+	j finish				#we're done here
 
 f:							#takes a0 as "x"
 	srl $t0, $a0, 24		#shift a0 right 24 bits, store in t0
@@ -158,6 +159,22 @@ enddl:
 
 keysched:					#takes a0 as "key[]" and a1 as "keylen"
 	add $s1, $zero, $ra		#copy ra into s1 so we can jump to other functions while here and still get back correctly
+	#TODO: initialize P array and S boxes
+	li $t0, 0				#set t0 to 0 for looping(loop variable)
+	li $t1, 18				#set t1 to 18 for looping(end condition)
+ksl1:	beq $t0, $t1, endkl1	#jump to the end of the loop if we've finished
+		div $t0, $a1			#divide t0 by a1 to get "i % keylen"
+		mfhi $t2				#copy the result of "i % keylen" into t2
+		sll $t2, $t2, 2			#shift t2 left twice for addressing
+		add $t3, $t2, $a0		#copy a0 into t3 and add t2 to it so that t3 is the address of the element in "key[]" that we want
+		lw $t4, ($t3)			#load that element into t4
+		la $t2, plist			#load the address of the P array into t2
+		sll $t3, $t0, 2			#shift t0 left twice and store in t3 for addressing
+		add $t3, $t2, $t3		#sum t2 and t3, store in t3
+		sw $t4, ($t3)			#store the value we put into t4 in the address t3 ("P[i]")
+		addi $t0, $t0, 1		#increment t0 by 1 for looping(invariant)
+		j ksl1					#continue the loop
+endkl1:
 	#TODO: the meat of keysched
 	add $ra, $zero, $s1		#copy s1 back to ra to return to (hopefully) main
 	jr $ra
@@ -179,6 +196,9 @@ invalid:
 	syscall					#exit with code a0
 
 finish:
+	la $a0, donemsg			#load our ending message into a0
+	li $v0, 4				#set v0 to 4 for string printing
+	syscall					#print the ending message
 	li $v0, 10				#set v0 to 10 for exiting
 	syscall					#exit
 
@@ -192,3 +212,4 @@ behaviorprompt: .asciiz "Are we encrypting(1) or decrypting(2)? "
 invalidinput: .asciiz "Invalid input. Exiting. \n"
 ifileprompt: .asciiz "Please enter the full path of the input file(max 200 characters): "
 ofileprompt: .asciiz "Please enter the full path to where you wish the result to appear(max 200 characters): "
+donemsg: .asciiz "Complete! \n"
