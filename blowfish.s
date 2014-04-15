@@ -105,6 +105,14 @@ t2: li $t0, 2				#load 2 into t0
 	bne $v0, $t0, invalid	#if v0 and t0 are still unequal we got neither 1 nor 2, input invalid.
 	jr $ra					#otherwise, jump back to where we came from
 
+invalid:
+	la $a0, invalidinput	#load our invalidity notice into a0
+	li $v0, 4				#set v0 to 4 for string printing
+	syscall					#print the notice
+	li $a0, 1				#set a0 to 1, an arbitrary error code
+	li $v0, 17				#set v0 to 17 for exiting with a code
+	syscall					#exit with code a0
+
 finish:
 	li $v0, 10				#set v0 to 10 for exiting
 	syscall					#exit
