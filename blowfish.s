@@ -75,6 +75,10 @@ f:
 	la $t1, slisttwo($t1)	#same, for slisttwo and t1
 	la $t2, slistthree($t2)	#same, for slistthree and t2
 	la $t3, slistfour($t3)	#same, for slistfour and t3
+	add $t0, $t0, $t1		#add t0 to t1 and store in t0
+	xor $t0, $t0, $t2		#xor with t2
+	add $v1, $t0, $t3		#add to t3 and store in v1 for output
+	jr $ra					#jump back to where we came here from.
 
 encrypt:
 
