@@ -64,9 +64,8 @@ main:
 	syscall					#print our prompt
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our file path
-	jal keysched			#call key_schedule
 	#TODO: start reading in file
-	#TODO: call relevant functions
+	jal keysched			#call key_schedule
 	j finish				#this line will go away eventually, but for now is here to prevent excess execution.
 
 f:
