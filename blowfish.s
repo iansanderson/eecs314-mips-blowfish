@@ -1,4 +1,4 @@
-# C implementation of Blowfish, taken from Wikipedia, for reference.
+# C++ implementation of Blowfish, taken from Wikipedia, for reference.
 #
 # uint32_t P[18];     // P-array
 # uint32_t S[4][256]; // S-boxes
@@ -56,16 +56,18 @@ main:
 	syscall					#print our prompt
 	li $v0, 5				#set v0 to 5 for integer reading
 	syscall					#read input into v0
-	jal testinput
+	jal testinput			#test our input
+	add $s0, $zero, $v0		#copy v0 into s0 to save our behavior choice
 	la $a0, ifileprompt		#load our input file prompt into a0
 	li $a1, 200				#set max length of input file path
 	li $v0, 4				#set v0 to 4 for string printing
 	syscall					#print our prompt
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our file path
-	#TODO: start reading in file
 	j keysched				#call key_schedule
+	#TODO: start reading in file
 	#TODO: call relevant functions
+	j finish				#this line will go away eventually, but for now is here to prevent excess execution.
 
 f:
 	srl $t0, $s0, 24		#shift s0 right 24 bits, store in t0
@@ -99,9 +101,9 @@ keysched:
 
 testinput:
 	li $t0, 1				#load 1 into t0
-	bne $v0, $t0, t2		#test v0 against t0 (1). if they're unequal, go to where we test it against 2.
+	bne $v0, $t0, tt		#test v0 against t0 (1). if they're unequal, go to where we test it against 2.
 	jr $ra					#otherwise, return to where we came from
-t2: li $t0, 2				#load 2 into t0
+tt: li $t0, 2				#load 2 into t0
 	bne $v0, $t0, invalid	#if v0 and t0 are still unequal we got neither 1 nor 2, input invalid.
 	jr $ra					#otherwise, jump back to where we came from
 
