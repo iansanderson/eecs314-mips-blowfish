@@ -51,6 +51,12 @@
 # }
 
 main:
+	la $a0, behaviorprompt	#load our behavior prompt into a0
+	li $v0, 4				#set v0 to 4 for string printing
+	syscall					#print our prompt
+	li $v0, 5				#set v0 to 5 for integer reading
+	syscall					#read input into v0
+	jal testinput
 	la $a0, ifileprompt		#load our input file prompt into a0
 	li $a1, 200				#set max length of input file path
 	li $v0, 4				#set v0 to 4 for string printing
@@ -90,6 +96,14 @@ decrypt:
 
 keysched:
 
+
+testinput:
+	li $t0, 1				#load 1 into t0
+	bne $v0, $t0, t2		#test v0 against t0 (1). if they're unequal, go to where we test it against 2.
+	jr $ra					#otherwise, return to where we came from
+t2: li $t0, 2				#load 2 into t0
+	bne $v0, $t0, invalid	#if v0 and t0 are still unequal we got neither 1 nor 2, input invalid.
+	jr $ra					#otherwise, jump back to where we came from
 
 finish:
 	li $v0, 10				#set v0 to 10 for exiting
