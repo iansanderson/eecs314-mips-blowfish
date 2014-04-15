@@ -122,12 +122,12 @@ finish:
 .data
 #These lists obviously don't have the correct data in them. plist is the right length, though,
 #and the 256 at the end of the slists denotes that that's how long they will be.
-plist: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
-slistone: 1, 2, 3, 4, 5, 6, 256
-slisttwo: 1, 2, 3, 4, 5, 6, 256
-slistthree: 1, 2, 3, 4, 5, 6, 256
-slistfour: 1, 2, 3, 4, 5, 6, 256
+plist: .word 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
+slistone: .word 1, 2, 3, 4, 5, 6, 256
+slisttwo: .word 1, 2, 3, 4, 5, 6, 256
+slistthree: .word 1, 2, 3, 4, 5, 6, 256
+slistfour: .word 1, 2, 3, 4, 5, 6, 256
 behaviorprompt: .asciiz "Are we encrypting(1) or decrypting(2)? "
 invalidinput: .asciiz "Invalid input. Exiting. \n"
 ifileprompt: .asciiz "Please enter the full path of the input file(max 200 characters): "
-ofileprompt: .ascciiz "Please enter the full path to where you wish the result to appear(max 200 characters): "
+ofileprompt: .asciiz "Please enter the full path to where you wish the result to appear(max 200 characters): "
