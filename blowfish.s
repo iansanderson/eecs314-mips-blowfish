@@ -128,13 +128,11 @@ finish:
 	syscall					#exit
 
 .data
-#These lists obviously don't have the correct data in them. plist is the right length, though,
-#and the 256 at the end of the slists denotes that that's how long they will be.
-plist: .word 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
-slistone: .word 1, 2, 3, 4, 5, 6, 256
-slisttwo: .word 1, 2, 3, 4, 5, 6, 256
-slistthree: .word 1, 2, 3, 4, 5, 6, 256
-slistfour: .word 1, 2, 3, 4, 5, 6, 256
+plist: .space 72
+slistone: .space 1024
+slisttwo: .space 1024
+slistthree: .space 1024
+slistfour: .space 1024
 behaviorprompt: .asciiz "Are we encrypting(1) or decrypting(2)? "
 invalidinput: .asciiz "Invalid input. Exiting. \n"
 ifileprompt: .asciiz "Please enter the full path of the input file(max 200 characters): "
