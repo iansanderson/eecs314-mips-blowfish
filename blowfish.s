@@ -68,11 +68,11 @@ main:
 	jal keysched			#call key_schedule
 	j finish				#this line will go away eventually, but for now is here to prevent excess execution.
 
-f:
-	srl $t0, $s0, 24		#shift s0 right 24 bits, store in t0
-	srl $t1, $s0, 16		#shift s0 right 16 bits, store in t1
-	srl $t2, $s0, 8			#shift s0 right 8 bits, store in t2
-	addu $t3, $zero, $s0	#copy s0 into t3
+f:							#takes a0 as "x"
+	srl $t0, $a0, 24		#shift a0 right 24 bits, store in t0
+	srl $t1, $a0, 16		#shift a0 right 16 bits, store in t1
+	srl $t2, $a0, 8			#shift a0 right 8 bits, store in t2
+	addu $t3, $zero, $a0	#copy a0 into t3
 	andi $t1, $t1, 0xff		#and our 16-bit-shifted copy of s0 with 255
 	andi $t2, $t2, 0xff		#again, for 8-bit
 	andi $t3, $t3, 0xff		#again, for the non-shifted one
@@ -89,19 +89,29 @@ f:
 	add $v1, $t0, $t3		#add to t3 and store in v1 for output
 	jr $ra					#jump back to where we came here from.
 
-encrypt:
+encrypt:					#takes a2 as "L" and a3 as "R".
 	add $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
-	#TODO: the meat of encrypt
+	li $t0, 0				#initialize t0 to 0 for looping(loop variable)
+	li $t1, 16				#initialize t1 to 16 for looping(end condition)
+eloop:	beq $t0, $t1, endel		#jump to the end of the loop if we've finished
+		#TODO: the contents of the loop
+		addi $t0, $t0, 2		#increment t0 by 2 for looping(invariant)
+		j eloop					#continue the loop
+endel:
+	xor $a2, $a2, plist(64)	#xor a2 with the 16th element of the P array, store in a2
+	xor $a3, $a3, plist(68)	#xor a3 with the 17th element of the P array, store in a3
+	add $v0, $zero, $a3		#return a3 as "L"
+	add $v1, $zero, $a2		#return a2 as "R"
 	add $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
 	jr $ra
 
-decrypt:
+decrypt:					#takes a2 as "L" and a3 as "R".
 	add $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
 	#TODO: the meat of decrypt
 	add $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
 	jr $ra
 
-keysched:
+keysched:					#takes a0 as "key[]" and a1 as "keylen"
 	add $s1, $zero, $ra		#copy ra into s1 so we can jump to other functions while here and still get back correctly
 	#TODO: the meat of keysched
 	add $ra, $zero, $s1		#copy s1 back to ra to return to (hopefully) main
