@@ -1,4 +1,4 @@
-# C implementation of Blowfish, taken from Wikipedia.
+# C implementation of Blowfish, taken from Wikipedia, for reference.
 #
 # uint32_t P[18];     // P-array
 # uint32_t S[4][256]; // S-boxes
@@ -57,7 +57,9 @@ main:
 	syscall					#print our prompt
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our file path
-	#TODO: start reading in file, then call relevant "functions"
+	#TODO: start reading in file
+	j keysched				#call key_schedule
+	#TODO: call relevant functions
 
 f:
 	srl $t0, $s0, 24		#shift s0 right 24 bits, store in t0
@@ -101,5 +103,7 @@ slistone: 1, 2, 3, 4, 5, 6, 256
 slisttwo: 1, 2, 3, 4, 5, 6, 256
 slistthree: 1, 2, 3, 4, 5, 6, 256
 slistfour: 1, 2, 3, 4, 5, 6, 256
-ifileprompt: .asciiz "Please enter the full path of the file you wish to encrypt(max 200 characters): "
+behaviorprompt: .asciiz "Are we encrypting(1) or decrypting(2)? "
+invalidinput: .asciiz "Invalid input. Exiting. \n"
+ifileprompt: .asciiz "Please enter the full path of the input file(max 200 characters): "
 ofileprompt: .ascciiz "Please enter the full path to where you wish the result to appear(max 200 characters): "
