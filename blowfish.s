@@ -98,8 +98,13 @@ eloop:	beq $t0, $t1, endel		#jump to the end of the loop if we've finished
 		addi $t0, $t0, 2		#increment t0 by 2 for looping(invariant)
 		j eloop					#continue the loop
 endel:
-	xor $a2, $a2, plist(64)	#xor a2 with the 16th element of the P array, store in a2
-	xor $a3, $a3, plist(68)	#xor a3 with the 17th element of the P array, store in a3
+	la $t0, plist			#load the P array's address into t0
+	addi $t0, $t0, 64		#add 64 to it for the address of the 16th element
+	lw $t1, ($t0)			#load that element into t1
+	xor $a2, $a2, $t1		#xor a2 with the 16th element of the P array, store in a2
+	addi $t0, $t0, 4		#add 4 more for the 17th element
+	lw $t1, ($t0)			#load that element into t1
+	xor $a3, $a3, $t1		#xor a3 with the 17th element of the P array, store in a3
 	add $v0, $zero, $a3		#return a3 as "L"
 	add $v1, $zero, $a2		#return a2 as "R"
 	add $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
@@ -107,7 +112,21 @@ endel:
 
 decrypt:					#takes a2 as "L" and a3 as "R".
 	add $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
-	#TODO: the meat of decrypt
+	li $t0, 16				#initialize t0 to 16 for looping(loop variable)
+	li $t1, 0				#initialize t1 to 0 for looping(end condition)
+dloop:	beq $t0, $t1, enddl		#jump to the end of the loop if we've finished
+		#TODO: the contents of the loop
+		addi $t0, $t0, -2		#decrement t0 by 2 for looping(invariant)
+		j dloop					#continue the loop
+enddl:
+	la $t0, plist			#load the P array's address into t0
+	lw $t1, ($t0)			#load that element into t1
+	xor $a3, $a3, $t1		#xor a3 with the 0th element of the P array, store in a3
+	addi $t0, $t0, 4		#add 4 to it for the address of the 1st element
+	lw $t1, ($t0)			#load that element into t1
+	xor $a2, $a2, $t1		#xor a2 with the 1st element of the P array, store in a2
+	add $v0, $zero, $a3		#return a3 as "L"
+	add $v1, $zero, $a2		#return a2 as "R"
 	add $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
 	jr $ra
 
