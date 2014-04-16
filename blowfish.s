@@ -11,7 +11,7 @@
 # void encrypt (uint32_t & , uint32_t & R) {
 #    for (int i=0 ; i<16 ; i += 2) {
 #        ^= P[i];
-#       R ^= f();
+#       R ^= f(L);
 #       R ^= P[i+1];
 #        ^= f(R);
 #    }
@@ -23,7 +23,7 @@
 # void decrypt (uint32_t & , uint32_t & R) {
 #    for (int i=16 ; i > 0 ; i -= 2) {
 #        ^= P[i+1];
-#       R ^= f();
+#       R ^= f(L);
 #       R ^= P[i];
 #        ^= f(R);
 #    }
@@ -90,7 +90,7 @@ f:							#takes a0 as "x"
 	add $v1, $t0, $t3		#add to t3 and store in v1 for output
 	jr $ra					#jump back to where we came here from.
 
-encrypt:					#takes a2 as "" and a3 as "R".
+encrypt:					#takes a2 as "L" and a3 as "R".
 	add $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
 	li $t0, 0				#initialize t0 to 0 for looping(loop variable)
 	li $t1, 16				#initialize t1 to 16 for looping(end condition)
@@ -119,12 +119,12 @@ endel:
 	addi $t0, $t0, 4		#add 4 more for the 17th element
 	lw $t1, ($t0)			#load that element into t1
 	xor $a3, $a3, $t1		#xor a3 with the 17th element of the P array, store in a3
-	add $v0, $zero, $a3		#return a3 as ""
+	add $v0, $zero, $a3		#return a3 as "L"
 	add $v1, $zero, $a2		#return a2 as "R"
 	add $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
 	jr $ra
 
-decrypt:					#takes a2 as "" and a3 as "R".
+decrypt:					#takes a2 as "L" and a3 as "R".
 	add $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
 	li $t0, 16				#initialize t0 to 16 for looping(loop variable)
 	li $t1, 0				#initialize t1 to 0 for looping(end condition)
@@ -152,14 +152,13 @@ enddl:
 	addi $t0, $t0, 4		#add 4 to it for the address of the 1st element
 	lw $t1, ($t0)			#load that element into t1
 	xor $a2, $a2, $t1		#xor a2 with the 1st element of the P array, store in a2
-	add $v0, $zero, $a3		#return a3 as ""
+	add $v0, $zero, $a3		#return a3 as "L"
 	add $v1, $zero, $a2		#return a2 as "R"
 	add $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
 	jr $ra
 
 keysched:					#takes a0 as "key[]" and a1 as "keylen"
 	add $s1, $zero, $ra		#copy ra into s1 so we can jump to other functions while here and still get back correctly
-	#TODO: initialize P array and S boxes
 	li $t0, 0				#set t0 to 0 for looping(loop variable)
 	li $t1, 18				#set t1 to 18 for looping(end condition)
 ksl1:	beq $t0, $t1, endkl1	#jump to the end of the loop if we've finished
