@@ -8,7 +8,7 @@
 #    return ( h ^ S[2][x >> 8 & 0xff] ) + S[3][x & 0xff];
 # }
 # 
-# void encrypt (uint32_t & , uint32_t & R) {
+# void encrypt (uint32_t & L, uint32_t & R) {
 #    for (int i=0 ; i<16 ; i += 2) {
 #       L ^= P[i];
 #       R ^= f(L);
@@ -17,7 +17,7 @@
 #    }
 #    L ^= P[16];
 #    R ^= P[17];
-#    swap (, R);
+#    swap (L, R);
 # }
 # 
 # void decrypt (uint32_t & L, uint32_t & R) {
@@ -29,7 +29,7 @@
 #    }
 #    L ^= P[1];
 #    R ^= P[0];
-#    swap (, R);
+#    swap (L, R);
 # }
 # 
 # void key_schedule (uint32_t key[], int keylen) {
