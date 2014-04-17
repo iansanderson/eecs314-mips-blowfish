@@ -10,24 +10,24 @@
 # 
 # void encrypt (uint32_t & , uint32_t & R) {
 #    for (int i=0 ; i<16 ; i += 2) {
-#        ^= P[i];
+#       L ^= P[i];
 #       R ^= f(L);
 #       R ^= P[i+1];
-#        ^= f(R);
+#       L ^= f(R);
 #    }
-#     ^= P[16];
+#    L ^= P[16];
 #    R ^= P[17];
 #    swap (, R);
 # }
 # 
-# void decrypt (uint32_t & , uint32_t & R) {
+# void decrypt (uint32_t & L, uint32_t & R) {
 #    for (int i=16 ; i > 0 ; i -= 2) {
-#        ^= P[i+1];
+#       L ^= P[i+1];
 #       R ^= f(L);
 #       R ^= P[i];
-#        ^= f(R);
+#       L ^= f(R);
 #    }
-#     ^= P[1];
+#    L ^= P[1];
 #    R ^= P[0];
 #    swap (, R);
 # }
@@ -40,13 +40,13 @@
 #       P[i] ^= key[i % keylen];
 #    uint32_t  = 0, R = 0;
 #    for (int i=0 ; i<18 ; i+=2) {
-#       encrypt (, R);
-#       P[i] = ; P[i+1] = R;
+#       encrypt (L, R);
+#       P[i] = L; P[i+1] = R;
 #    }
 #    for (int i=0 ; i<4 ; ++i)
 #       for (int j=0 ; j<256; j+=2) {
-#          encrypt (, R);
-#          S[i][j] = ; S[i][j+1] = R;
+#          encrypt (L, R);
+#          S[i][j] = L; S[i][j+1] = R;
 #       }
 # }
 
