@@ -250,8 +250,8 @@ kl6r:	la $t3, slistfour		#load the fourth S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
 		add $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
-		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[1][j] = L")
-		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[1][j+1] = R")
+		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[3][j] = L")
+		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[3][j+1] = R")
 		addi $t0, $t0, 1		#increment t0 for looping(invariant)
 		j ksl6					#continue the loop
 endkl6:
