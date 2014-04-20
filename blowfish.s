@@ -74,9 +74,33 @@ main:
 	la $a0, pockey			#load the proof of concept key's location into a0
 	li $a1, 12				#load 12 into a1 to represent the size of the key
 	jal keysched			#call key_schedule
-	#TODO: start reading in file
-	#TODO: encrypt or decrypt file
-	#TODO: write output file
+	add $a0, $zero, $s3		#copy s3(input file location) to a0 for file opening
+	li $a1, 0x8000			#set a1 to 0x8000 for binary mode, OR with 0x0 for read
+	li $a2, 0444			#i think this will be read-only...
+	li $v0, 13				#set v0 to 13 for file opening
+	syscall					#open the file and put its descriptor in v0
+	add $s5, $zero, $v0		#store the input file descriptor in s5
+	li $a0, $zero, $s4		#copy s4(output file location) to a0 for file opening
+	li $a1, 0x8101			#set a1 to 0x8000 for binary, OR with 0x100 for Create, OR with 0x1 for write
+	li $a2, 0222			#i think this will be write-only...
+	li $v0, 13				#set v0 to 13 for file opening
+	syscall					#open the file and put its descriptor in v0
+	add $s6, $zero, $v0		#store the output file descriptor in s6
+mainloop:						#Here's where we actually do the en/decryption
+		li $v0, 14				#set v0 to 14 for file reading
+		#TODO: start reading in file
+		
+		li $t0, 0x1A			#set t0 to 1A for now so we don't have infinite loops during testing.
+		beq $t0, 0x1A, endml	#jump to finish if we hit eof
+		#TODO: encrypt or decrypt file
+		#TODO: write output file
+		j mainloop				#keep looping
+endml:
+	li $v0, 16 				#set v0 to 16 for file closing
+	add $a0, $zero, $s5		#copy the input file descriptor into a0 to close it
+	syscall					#close the file
+	add $a0, $zero, $s6		#copy the output file descriptor into a0 to close it
+	syscall					#close the file
 	j finish				#we're done here
 
 f:							#takes a0 as "x"
