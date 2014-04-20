@@ -65,7 +65,7 @@ main:
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our file path
 	add $s3, $zero, $v0		#store our input file location in s3
-	la $a0, $ofileprompt	#load our output file prompt into a0
+	la $a0, ofileprompt		#load our output file prompt into a0
 	li $v0, 4				#set v0 to 4 for string printing
 	syscall					#print our prompt
 	li $v0, 8				#set v0 to 8 for string reading
@@ -188,12 +188,8 @@ endkl1:
 	li $a3, 0				#set a3 to 0 for the same reason as a2
 	li $t0, 0				#set t0 to 0 for looping(loop variable)
 	li $t1, 18				#set t1 to 18 for looping(end condition)
-	li $t2, 1				#set t2 to 1 for checking intended behavior(encrypt vs decrypt) during loops
 ksl2:	beq $t0, $t1, endkl2	#jump to the end of the loop if we've finished
-		beq $s0, $t2, kl2en		#go to where we encrypt if behavior is 1
-		jal decrypt				#otherwise, decrypt
-		j kl2r					#and jump to the rest of ksl2
-kl2en:	jal encrypt				#encrypt
+		jal encrypt				#encrypt
 kl2r:	la $t3, plist			#load the P array's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
@@ -207,10 +203,7 @@ endkl2:
 	li $t1, 256				#set t1 to 4 for looping(end condition)
 #we're using 4 loops here instead of a nested loop due to the way we've set up our S boxes
 ksl3:	beq $t0, $t1, endkl3	#jump to the end of the loop if we've finished
-		beq $s0, $t2, kl3en		#go to where we encrypt if behavior is 1 (t2 is still 1)
-		jal decrypt				#otherwise, decrypt
-		j kl3r					#and jump to the rest of ksl2
-kl3en:	jal encrypt				#encrypt
+		jal encrypt				#encrypt
 kl3r:	la $t3, slistone		#load the first S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
@@ -222,10 +215,7 @@ kl3r:	la $t3, slistone		#load the first S box's address into t3
 endkl3:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl4:	beq $t0, $t1, endkl4	#jump to the end of the loop if we've finished
-		beq $s0, $t2, kl4en		#go to where we encrypt if behavior is 1 (t2 is still 1)
-		jal decrypt				#otherwise, decrypt
-		j kl4r					#and jump to the rest of ksl2
-kl4en:	jal encrypt				#encrypt
+		jal encrypt				#encrypt
 kl4r:	la $t3, slisttwo		#load the second S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
@@ -237,10 +227,7 @@ kl4r:	la $t3, slisttwo		#load the second S box's address into t3
 endkl4:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl5:	beq $t0, $t1, endkl5	#jump to the end of the loop if we've finished
-		beq $s0, $t2, kl5en		#go to where we encrypt if behavior is 1 (t2 is still 1)
-		jal decrypt				#otherwise, decrypt
-		j kl5r					#and jump to the rest of ksl2
-kl5en:	jal encrypt				#encrypt
+		jal encrypt				#encrypt
 kl5r:	la $t3, slistthree		#load the third S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
@@ -252,10 +239,7 @@ kl5r:	la $t3, slistthree		#load the third S box's address into t3
 endkl5:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl6:	beq $t0, $t1, endkl6	#jump to the end of the loop if we've finished
-		beq $s0, $t2, kl6en		#go to where we encrypt if behavior is 1 (t2 is still 1)
-		jal decrypt				#otherwise, decrypt
-		j kl6r					#and jump to the rest of ksl2
-kl6en:	jal encrypt				#encrypt
+		jal encrypt				#encrypt
 kl6r:	la $t3, slistfour		#load the fourth S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
