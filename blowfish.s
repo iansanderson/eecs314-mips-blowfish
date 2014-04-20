@@ -140,7 +140,10 @@ mltest:	beq $s0, $t0, mlen		#go to where we encrypt if behavior is 1
 		jal decrypt				#otherwise, decrypt
 		j mlrest				#and jump to the rest of the main loop
 mlen:	jal encrypt				#encrypt
-mlrest:	#TODO: shove en/decrypted stuff back into buffer
+mlrest:	li $t0, 0				#load 0 into t0 to serve as an offset for storing "L"
+		sw $v0, buffer($t0)		#store "L" back into the first half of the buffer
+		li $t0, 4				#load 4 into t0 to serve as an offset for storing "R"
+		sw $v1, buffer($t0)		#store "R" back into the second half of the buffer
 		li $v0, 15				#set v0 to 15 for file writing
 		add $a0, $zero, $s4		#load output file descriptor into a0 for writing(a1 should still have the buffer's address)
 		li $a2, 8				#load 8 into a2 because that's how many bytes we're writing
