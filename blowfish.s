@@ -88,12 +88,14 @@ main:
 	add $s6, $zero, $v0		#store the output file descriptor in s6
 mainloop:						#Here's where we actually do the en/decryption
 		li $v0, 14				#set v0 to 14 for file reading
-		#TODO: start reading in file
-		
+		add $a0, $zero, $s3		#load input file descriptor into a0 for reading
+		la $a1, buffer			#load buffer's address into a1 for reading
+		li $a2, 8				#load 8 into a2 to cap the bytes read at 64
+		syscall					#read from the file
 		blez $v0, endml			#jump to finish if we hit eof or error(after reading, v0 is 0 if eof was hit, negative if error occurred
-		#TODO: encrypt or decrypt file
+		#TODO: prevent use of more bytes than were read
 		#load the first half of the buffer for "L"
-		li $t2, 0				#because for some reason we can't do buffer(0), but can do buffer($tX)
+		li $t2, 0				#because for some reason we can't do buffer(0)
 		lb $t0, buffer($t2)		#load the first byte of the buffer into t0
 		sll $t0, $t0, 8			#shift t0 left 8 places to prepare for the next byte
 		li $t2, 1
@@ -129,9 +131,11 @@ mainloop:						#Here's where we actually do the en/decryption
 		jal decrypt				#otherwise, decrypt
 		j mlrest				#and jump to the rest of the main loop
 mlen:	jal encrypt				#encrypt
-mlrest:	li $v0, 15				#set v0 to 15 for file writing
-		#TODO: write output file
-		
+mlrest:	#TODO: shove en/decrypted stuff back into buffer
+		li $v0, 15				#set v0 to 15 for file writing
+		add $a0, $zero, $s4		#load output file descriptor into a0 for writing(a1 should still have the buffer's address)
+		li $a2, 8				#load 8 into a2 because that's how many bytes we're writing
+		syscall					#write to the file
 		j mainloop				#keep looping
 endml:
 	li $v0, 16 				#set v0 to 16 for file closing
