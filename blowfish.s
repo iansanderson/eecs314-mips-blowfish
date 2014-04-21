@@ -243,6 +243,7 @@ ksl2:	beq $t0, $t1, endkl2	#jump to the end of the loop if we've finished
 kl2r:	la $t3, plist			#load the P array's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
+		add $t4, $t4, $t3		#add the list address to t4
 		add $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("P[i] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("P[i+1] = R")
@@ -259,6 +260,7 @@ ksl3:	beq $t0, $t1, endkl3	#jump to the end of the loop if we've finished
 kl3r:	la $t3, slistone		#load the first S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
+		add $t4, $t4, $t3		#add the list address to t4
 		add $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[0][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[0][j+1] = R")
@@ -273,6 +275,7 @@ ksl4:	beq $t0, $t1, endkl4	#jump to the end of the loop if we've finished
 kl4r:	la $t3, slisttwo		#load the second S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
+		add $t4, $t4, $t3		#add the list address to t4
 		add $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[1][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[1][j+1] = R")
@@ -287,6 +290,7 @@ ksl5:	beq $t0, $t1, endkl5	#jump to the end of the loop if we've finished
 kl5r:	la $t3, slistthree		#load the third S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
+		add $t4, $t4, $t3		#add the list address to t4
 		add $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[2][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[2][j+1] = R")
@@ -301,6 +305,7 @@ ksl6:	beq $t0, $t1, endkl6	#jump to the end of the loop if we've finished
 kl6r:	la $t3, slistfour		#load the fourth S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
+		add $t4, $t4, $t3		#add the list address to t4
 		add $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[3][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[3][j+1] = R")
