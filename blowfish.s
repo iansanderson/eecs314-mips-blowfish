@@ -128,24 +128,24 @@ endml:
 	j finish				#we're done here
 
 f:							#takes a0 as "x"
-	srl $t0, $a0, 24		#shift a0 right 24 bits, store in t0
-	srl $t1, $a0, 16		#shift a0 right 16 bits, store in t1
-	srl $t2, $a0, 8			#shift a0 right 8 bits, store in t2
-	addu $t3, $zero, $a0	#copy a0 into t3
-	andi $t1, $t1, 0xff		#and our 16-bit-shifted copy of s0 with 255
-	andi $t2, $t2, 0xff		#again, for 8-bit
-	andi $t3, $t3, 0xff		#again, for the non-shifted one
-	sll $t0, $t0, 2			#shift t0 left 2 for use as an array index
-	sll $t1, $t1, 2			#same for t1
-	sll $t2, $t2, 2			#same for t2
-	sll $t3, $t3, 2			#same for t3
-	la $t0, slistone($t0)	#load the element of slistone at t0 into t0
-	la $t1, slisttwo($t1)	#same, for slisttwo and t1
-	la $t2, slistthree($t2)	#same, for slistthree and t2
-	la $t3, slistfour($t3)	#same, for slistfour and t3
-	add $t0, $t0, $t1		#add t0 to t1 and store in t0
-	xor $t0, $t0, $t2		#xor with t2
-	add $v1, $t0, $t3		#add to t3 and store in v1 for output
+	srl $t6, $a0, 24		#shift a0 right 24 bits, store in t0
+	srl $t7, $a0, 16		#shift a0 right 16 bits, store in t1
+	srl $t8, $a0, 8			#shift a0 right 8 bits, store in t2
+	addu $t9, $zero, $a0	#copy a0 into t3
+	andi $t7, $t7, 0xff		#and our 16-bit-shifted copy of s0 with 255
+	andi $t8, $t8, 0xff		#again, for 8-bit
+	andi $t9, $t9, 0xff		#again, for the non-shifted one
+	sll $t6, $t6, 2			#shift t0 left 2 for use as an array index
+	sll $t7, $t7, 2			#same for t1
+	sll $t8, $t8, 2			#same for t2
+	sll $t9, $t9, 2			#same for t3
+	la $t6, slistone($t6)	#load the element of slistone at t0 into t0
+	la $t7, slisttwo($t7)	#same, for slisttwo and t1
+	la $t8, slistthree($t8)	#same, for slistthree and t2
+	la $t9, slistfour($t9)	#same, for slistfour and t3
+	add $t6, $t6, $t7		#add t0 to t1 and store in t0
+	xor $t6, $t6, $t8		#xor with t2
+	add $v1, $t6, $t9		#add to t3 and store in v1 for output
 	jr $ra					#jump back to where we came here from.
 
 encrypt:					#takes a2 as "L" and a3 as "R".
@@ -190,7 +190,7 @@ dloop:	beq $t0, $t1, enddl		#jump to the end of the loop if we've finished
 		la $t2, plist			#load the P array's address into t2
 		sll $t3, $t0, 2			#shift t0 left twice and store in t3, for addressing
 		add $t4, $t2, $t3		#sum t2 and t3 into t4 for accessing the P array
-		addi $t4, $t4, 4		#add 1 to t4 and store in t4
+		addi $t4, $t4, 4		#add 4 to t4 and store in t4
 		lw $t5, ($t4)			#load that element into t5
 		xor $a2, $a2, $t5		#xor a2 with t5 and store in a2
 		add $a0, $zero, $a2		#copy a2 into a0 for calling f
