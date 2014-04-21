@@ -65,26 +65,27 @@ main:
 	la $a0, ifilebuff		#load the input file name buffer's address into a0
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our file path
-	add $s3, $zero, $v0		#store our input file location in s3
+	la $s3, ifilebuff		#store our input file location in s3
 	la $a0, ofileprompt		#load our output file prompt into a0
 	li $v0, 4				#set v0 to 4 for string printing
 	syscall					#print our prompt
 	la $a0, ofilebuff		#load the output file name buffer's address into a0
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our output file path
-	add $s4, $zero, $v0		#store our output file location in s4
+	la $s4, ofilebuff		#store our output file location in s4
+	jal nameclean			#clean the names of their newlines
 	la $a0, pockey			#load the proof of concept key's location into a0
 	li $a1, 12				#load 12 into a1 to represent the size of the key
 	jal keysched			#call key_schedule
 	add $a0, $zero, $s3		#copy s3(input file location) to a0 for file opening
 	li $a1, 0x8000			#set a1 to 0x8000 for binary mode, OR with 0x0 for read
-	li $a2, 0444			#i think this will be read-only...
+	li $a2, 0				#mode doesn't make sense yet, so i'm using 0
 	li $v0, 13				#set v0 to 13 for file opening
 	syscall					#open the file and put its descriptor in v0
 	add $s5, $zero, $v0		#store the input file descriptor in s5
 	add $a0, $zero, $s4		#copy s4(output file location) to a0 for file opening
 	li $a1, 0x8101			#set a1 to 0x8000 for binary, OR with 0x100 for Create, OR with 0x1 for write
-	li $a2, 0222			#i think this will be write-only...
+	li $a2, 0x100			#mode doesn't make sense yet, so i'm using 0
 	li $v0, 13				#set v0 to 13 for file opening
 	syscall					#open the file and put its descriptor in v0
 	add $s6, $zero, $v0		#store the output file descriptor in s6
@@ -332,6 +333,20 @@ invalid:
 	li $a0, 1				#set a0 to 1, an arbitrary error code
 	li $v0, 17				#set v0 to 17 for exiting with a code
 	syscall					#exit with code a0
+
+nameclean:
+    li $t0, 0       		#loop counter
+    li $t1, 21 				#loop end
+clean: 	beq $t0, $t1, L5
+    	lb $t2, ifilebuff($t0)		#load this iteration's byte(ifile)
+    	bne $t2, 0x0a, nclp2		#check if it's ASCII 10
+    	sb $zero, ifilebuff($t0)	#if it is, substitute it with $zero
+nclp2:	lb $t2, ofilebuff($t0)		#load this iteration's byte(ofile)
+		bne $t2, 0x0a, nclp3		#check if it's ASCII 10
+		sb $zero, ofilebuff($t0)	#if it is, substitute it with $zero
+nclp3: 	addi $t0, $t0, 1			#increment counter
+		j clean
+L5:	jr $ra
 
 finish:
 	la $a0, donemsg			#load our ending message into a0
