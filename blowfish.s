@@ -237,7 +237,9 @@ endkl1:
 	li $t0, 0				#set t0 to 0 for looping(loop variable)
 	li $t1, 18				#set t1 to 18 for looping(end condition)
 ksl2:	beq $t0, $t1, endkl2	#jump to the end of the loop if we've finished
+		add $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
 		jal encrypt				#encrypt
+		add $t0, $zero, $s7		#copy it back
 kl2r:	la $t3, plist			#load the P array's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
@@ -251,7 +253,9 @@ endkl2:
 	li $t1, 256				#set t1 to 4 for looping(end condition)
 #we're using 4 loops here instead of a nested loop due to the way we've set up our S boxes
 ksl3:	beq $t0, $t1, endkl3	#jump to the end of the loop if we've finished
+		add $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
 		jal encrypt				#encrypt
+		add $t0, $zero, $s7		#copy it back
 kl3r:	la $t3, slistone		#load the first S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
@@ -263,7 +267,9 @@ kl3r:	la $t3, slistone		#load the first S box's address into t3
 endkl3:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl4:	beq $t0, $t1, endkl4	#jump to the end of the loop if we've finished
+		add $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
 		jal encrypt				#encrypt
+		add $t0, $zero, $s7		#copy it back
 kl4r:	la $t3, slisttwo		#load the second S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
@@ -275,7 +281,9 @@ kl4r:	la $t3, slisttwo		#load the second S box's address into t3
 endkl4:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl5:	beq $t0, $t1, endkl5	#jump to the end of the loop if we've finished
+		add $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
 		jal encrypt				#encrypt
+		add $t0, $zero, $s7		#copy it back
 kl5r:	la $t3, slistthree		#load the third S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
@@ -287,7 +295,9 @@ kl5r:	la $t3, slistthree		#load the third S box's address into t3
 endkl5:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl6:	beq $t0, $t1, endkl6	#jump to the end of the loop if we've finished
+		add $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
 		jal encrypt				#encrypt
+		add $t0, $zero, $s7		#copy it back
 kl6r:	la $t3, slistfour		#load the fourth S box's address into t3
 		add $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
