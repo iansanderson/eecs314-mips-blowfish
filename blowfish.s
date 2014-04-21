@@ -2,12 +2,12 @@
 #
 # uint32_t P[18];     // P-array
 # uint32_t S[4][256]; // S-boxes
-# 
+#
 # uint32_t f (uint32_t x) {
 #    uint32_t h = S[0][x >> 24] + S[1][x >> 16 & 0xff];
 #    return ( h ^ S[2][x >> 8 & 0xff] ) + S[3][x & 0xff];
 # }
-# 
+#
 # void encrypt (uint32_t & L, uint32_t & R) {
 #    for (int i=0 ; i<16 ; i += 2) {
 #       L ^= P[i];
@@ -19,7 +19,7 @@
 #    R ^= P[17];
 #    swap (L, R);
 # }
-# 
+#
 # void decrypt (uint32_t & L, uint32_t & R) {
 #    for (int i=16 ; i > 0 ; i -= 2) {
 #       L ^= P[i+1];
@@ -31,7 +31,7 @@
 #    R ^= P[0];
 #    swap (L, R);
 # }
-# 
+#
 # void key_schedule (uint32_t key[], int keylen) {
 #    // ...
 #    // initializing the P-array and S-boxes with values derived from pi; omitted in the example
@@ -93,49 +93,19 @@ mainloop:						#Here's where we actually do the en/decryption
 		li $a2, 8				#load 8 into a2 to cap the bytes read at 64
 		syscall					#read from the file
 		blez $v0, endml			#jump to finish if we hit eof or error(after reading, v0 is 0 if eof was hit, negative if error occurred
-		addi $t3, $v0, -1		#store v0 - 1 in t3 for checking against t2 to prevent attempting to use data we don't have.
+		add $t3, $zero, $v0		#store v0 (number of bytes read) in t3 for checking against t2 to prevent attempting to use data we don't have.
 		li $a2, 0				#initialize a2 to 0 so we don't screw ourselves up if there's not enough data
 		li $a3, 0				#same for a3
 		#load the first half of the buffer for "L"
 		li $t2, 0				#because for some reason we can't do buffer(0)
-		lb $t0, buffer($t2)		#load the first byte of the buffer into t0
-		sll $t0, $t0, 8			#shift t0 left 8 places to prepare for the next byte
-		beq $t2, $t3, mltest
-		li $t2, 1
-		lb $t1, buffer($t2)		#load the second byte of the buffer into t1
-		add $t0, $t0, $t1		#copy t1 into the lowest 8 bits of t0
-		sll $t0, $t0, 8			#shift t0 again for the third byte
-		beq $t2, $t3, mltest
-		li $t2, 2
-		lb $t1, buffer($t2)		#load the third byte
-		add $t0, $t0, $t1		#copy into lowest 8 bits again
-		sll $t0, $t0, 8			#shift again to prepare for fourth byte
-		beq $t2, $t3, mltest
-		li $t2, 3
-		lb $t1, buffer($t2)		#load fourth byte
-		add $t0, $t0, $t1		#copy last byte into $t0
-		add $a2, $zero, $t0		#copy t0 into a2 for when we call en/decrypt
-		beq $t2, $t3, mltest
-		#load the second half of the buffer for "R"
-		li $t2, 4
-		lb $t0, buffer($t2)		#load the fifth byte of the buffer into t0
-		sll $t0, $t0, 8			#shift for next byte
-		beq $t2, $t3, mltest
-		li $t2, 5
-		lb $t1, buffer($t2)		#really you should know what's going on by now
-		add $t0, $t0, $t1
-		sll $t0, $t0, 8
-		beq $t2, $t3, mltest
-		li $t2, 6
-		lb $t1, buffer($t2)
-		add $t0, $t0, $t1
-		sll $t0, $t0, 8
-		beq $t2, $t3, mltest
-		li $t2, 7
-		lb $t1, buffer($t2)
-		add $t0, $t0, $t1
-		add $a3, $zero, $t0		#copy t0 into a3 for when we call en/decrypt
-		li $t0, 1				#load 1 into t0 for behavior checking
+		lw $t0, buffer($t2)		#load the first word of the buffer into t0
+		li $t2, 4				#both to prepare for reading the next word and checking how much we've read against how much we have
+		add $a2, $zero, $t0		#copy t0 into a2 for en/decryption
+		li $a3, 0				#load 0 into a3 in case we're done reading
+		sub $t4, $t2, $t3		#subtract the number of bytes in the buffer from the number of bytes we've used
+		bltz $t4, mltest		#skip down to the behavior test if we've read everything in the buffer
+		lw $t0, buffer($t2)		#load the second word of the buffer into t0
+		add $a3, $zero, $t0		#copy t0 into a3 for en/decryption
 mltest:	beq $s0, $t0, mlen		#go to where we encrypt if behavior is 1
 		jal decrypt				#otherwise, decrypt
 		j mlrest				#and jump to the rest of the main loop
