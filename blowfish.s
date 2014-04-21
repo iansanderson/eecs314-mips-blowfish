@@ -161,7 +161,7 @@ eloop:	beq $t0, $t1, endel		#jump to the end of the loop if we've finished
 		add $a0, $zero, $a2		#copy a2 into a0 for calling f
 		jal f					#call f
 		xor $a3, $a3, $v1		#xor a3 with the result of f and store in a3
-		addi $t4, $t4, 1		#add 1 to t4 and store in t4
+		addi $t4, $t4, 4		#add 1 to t4 and store in t4
 		lw $t5, ($t4)			#load the t4th element of the P array into t5
 		xor $a3, $a3, $t5		#xor a3 with t5 and store in a3
 		add $a0, $zero, $a3		#copy a3 into a0 for calling f
@@ -190,13 +190,13 @@ dloop:	beq $t0, $t1, enddl		#jump to the end of the loop if we've finished
 		la $t2, plist			#load the P array's address into t2
 		sll $t3, $t0, 2			#shift t0 left twice and store in t3, for addressing
 		add $t4, $t2, $t3		#sum t2 and t3 into t4 for accessing the P array
-		addi $t4, $t4, 1		#add 1 to t4 and store in t4
+		addi $t4, $t4, 4		#add 1 to t4 and store in t4
 		lw $t5, ($t4)			#load that element into t5
 		xor $a2, $a2, $t5		#xor a2 with t5 and store in a2
 		add $a0, $zero, $a2		#copy a2 into a0 for calling f
 		jal f					#call f
 		xor $a3, $a3, $v1		#xor a3 with the result of f and store in a3
-		addi $t4, $t4, -1		#subtract 1 from t4 and store in t4(getting back to the "i"th element, rather than "i+1"th)
+		addi $t4, $t4, -4		#subtract 1 from t4 and store in t4(getting back to the "i"th element, rather than "i+1"th)
 		lw $t5, ($t4)			#load the t4th element of the P array into t5
 		xor $a3, $a3, $t5		#xor a3 with t5 and store in a3
 		add $a0, $zero, $a3		#copy a3 into a0 for calling f
