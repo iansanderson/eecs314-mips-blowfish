@@ -65,30 +65,30 @@ main:
 	la $a0, ifilebuff		#load the input file name buffer's address into a0
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our file path
-	la $t0, ifilebuff		#store our input file location in t0
+	la $t3, ifilebuff		#store our input file location in t3
 	la $a0, ofileprompt		#load our output file prompt into a0
 	li $v0, 4				#set v0 to 4 for string printing
 	syscall					#print our prompt
 	la $a0, ofilebuff		#load the output file name buffer's address into a0
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our output file path
-	la $t1, ofilebuff		#store our output file location in t1
+	la $t4, ofilebuff		#store our output file location in t4
 	jal nameclean			#clean the names of their newlines
-	la $a0, pockey			#load the proof of concept key's location into a0
-	li $a1, 12				#load 12 into a1 to represent the size of the key
-	jal keysched			#call key_schedule
-	add $a0, $zero, $t0		#copy t0(input file location) to a0 for file opening
+	add $a0, $zero, $t3		#copy t3(input file location) to a0 for file opening
 	li $a1, 0				#set a1 to 0 for read
 	li $a2, 0				#mode doesn't make sense yet, so i'm using 0
 	li $v0, 13				#set v0 to 13 for file opening
 	syscall					#open the file and put its descriptor in v0
 	add $s5, $zero, $v0		#store the input file descriptor in s5
-	add $a0, $zero, $t1		#copy t1(output file location) to a0 for file opening
+	add $a0, $zero, $t4		#copy t4(output file location) to a0 for file opening
 	li $a1, 1				#set a1 to 1 for write with create
 	li $a2, 0				#mode doesn't make sense yet, so i'm using 0
 	li $v0, 13				#set v0 to 13 for file opening
 	syscall					#open the file and put its descriptor in v0
 	add $s6, $zero, $v0		#store the output file descriptor in s6
+	la $a0, pockey			#load the proof of concept key's location into a0
+	li $a1, 12				#load 12 into a1 to represent the size of the key
+	jal keysched			#call key_schedule
 mainloop:						#Here's where we actually do the en/decryption
 		li $v0, 14				#set v0 to 14 for file reading
 		add $a0, $zero, $s5		#load input file descriptor into a0 for reading
@@ -383,3 +383,5 @@ invalidinput: .asciiz "Invalid input. Exiting. \n"
 ifileprompt: .asciiz "Please enter the full path of the input file(max 200 characters): "
 ofileprompt: .asciiz "Please enter the full path to where you wish the result to appear(max 200 characters): "
 donemsg: .asciiz "Complete! \n"
+mainloopbegin: .asciiz "main loop about to begin \n"
+keyscheddone: .asciiz "keyschedule done\n"
