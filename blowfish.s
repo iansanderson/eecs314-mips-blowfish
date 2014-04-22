@@ -132,24 +132,24 @@ endml:
 	j finish				#we're done here
 
 f:							#takes a0 as "x"
-	srl $t6, $a0, 24		#shift a0 right 24 bits, store in t0
-	srl $t7, $a0, 16		#shift a0 right 16 bits, store in t1
-	srl $t8, $a0, 8			#shift a0 right 8 bits, store in t2
-	addu $t9, $zero, $a0	#copy a0 into t3
+	srl $t6, $a0, 24		#shift a0 right 24 bits, store in t6
+	srl $t7, $a0, 16		#shift a0 right 16 bits, store in t7
+	srl $t8, $a0, 8			#shift a0 right 8 bits, store in t8
+	addu $t9, $zero, $a0	#copy a0 into t9
 	andi $t7, $t7, 0xff		#and our 16-bit-shifted copy of s0 with 255
 	andi $t8, $t8, 0xff		#again, for 8-bit
 	andi $t9, $t9, 0xff		#again, for the non-shifted one
 	sll $t6, $t6, 2			#shift t0 left 2 for use as an array index
-	sll $t7, $t7, 2			#same for t1
-	sll $t8, $t8, 2			#same for t2
-	sll $t9, $t9, 2			#same for t3
-	la $t6, slistone($t6)	#load the element of slistone at t0 into t0
-	la $t7, slisttwo($t7)	#same, for slisttwo and t1
-	la $t8, slistthree($t8)	#same, for slistthree and t2
-	la $t9, slistfour($t9)	#same, for slistfour and t3
-	add $t6, $t6, $t7		#add t0 to t1 and store in t0
-	xor $t6, $t6, $t8		#xor with t2
-	add $v1, $t6, $t9		#add to t3 and store in v1 for output
+	sll $t7, $t7, 2			#same for t6
+	sll $t8, $t8, 2			#same for t7
+	sll $t9, $t9, 2			#same for t8
+	la $t6, slistone($t6)	#load the element of slistone at t6 into t6
+	la $t7, slisttwo($t7)	#same, for slisttwo and t7
+	la $t8, slistthree($t8)	#same, for slistthree and t8
+	la $t9, slistfour($t9)	#same, for slistfour and t9
+	add $t6, $t6, $t7		#add t0 to t7 and store in t6
+	xor $t6, $t6, $t8		#xor with t8
+	add $v1, $t6, $t9		#add to t9 and store in v1 for output
 	jr $ra					#jump back to where we came here from.
 
 encrypt:					#takes a2 as "L" and a3 as "R".
