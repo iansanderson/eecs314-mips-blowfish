@@ -121,12 +121,12 @@ mlrest:	li $t0, 0				#load 0 into t0 to serve as an offset for storing "L"
 		add $a0, $zero, $s6		#load output file descriptor into a0 for writing(a1 should still have the buffer's address)
 		li $a2, 8				#load 8 into a2 because that's how many bytes we're writing
 		syscall					#write to the file
-		addi $s8, $s8, 1
 		j mainloop				#keep looping
 endml:
 	li $v0, 16 				#set v0 to 16 for file closing
 	add $a0, $zero, $s5		#copy the input file descriptor into a0 to close it
 	syscall					#close the file
+	li $v0, 16				#set it again because it was changed by the syscall
 	add $a0, $zero, $s6		#copy the output file descriptor into a0 to close it
 	syscall					#close the file
 	j finish				#we're done here
