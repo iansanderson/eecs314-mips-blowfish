@@ -91,7 +91,7 @@ main:
 	add $s6, $zero, $v0		#store the output file descriptor in s6
 mainloop:						#Here's where we actually do the en/decryption
 		li $v0, 14				#set v0 to 14 for file reading
-		add $a0, $zero, $s3		#load input file descriptor into a0 for reading
+		add $a0, $zero, $s5		#load input file descriptor into a0 for reading
 		la $a1, buffer			#load buffer's address into a1 for reading
 		li $a2, 8				#load 8 into a2 to cap the bytes read at 64
 		syscall					#read from the file
@@ -118,9 +118,10 @@ mlrest:	li $t0, 0				#load 0 into t0 to serve as an offset for storing "L"
 		li $t0, 4				#load 4 into t0 to serve as an offset for storing "R"
 		sw $v1, buffer($t0)		#store "R" back into the second half of the buffer
 		li $v0, 15				#set v0 to 15 for file writing
-		add $a0, $zero, $s4		#load output file descriptor into a0 for writing(a1 should still have the buffer's address)
+		add $a0, $zero, $s6		#load output file descriptor into a0 for writing(a1 should still have the buffer's address)
 		li $a2, 8				#load 8 into a2 because that's how many bytes we're writing
 		syscall					#write to the file
+		addi $s8, $s8, 1
 		j mainloop				#keep looping
 endml:
 	li $v0, 16 				#set v0 to 16 for file closing
@@ -370,3 +371,5 @@ invalidinput: .asciiz "Invalid input. Exiting. \n"
 ifileprompt: .asciiz "Please enter the full path of the input file(max 200 characters): "
 ofileprompt: .asciiz "Please enter the full path to where you wish the result to appear(max 200 characters): "
 donemsg: .asciiz "Complete! \n"
+mainloopbegin: .asciiz "main loop about to begin \n"
+keyscheddone: .asciiz "keyschedule done\n"
