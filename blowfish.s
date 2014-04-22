@@ -78,14 +78,14 @@ main:
 	li $a1, 12				#load 12 into a1 to represent the size of the key
 	jal keysched			#call key_schedule
 	add $a0, $zero, $t0		#copy t0(input file location) to a0 for file opening
-	li $a1, 0x8000			#set a1 to 0x8000 for binary mode, OR with 0x0 for read
+	li $a1, 0				#set a1 to 0 for read
 	li $a2, 0				#mode doesn't make sense yet, so i'm using 0
 	li $v0, 13				#set v0 to 13 for file opening
 	syscall					#open the file and put its descriptor in v0
 	add $s5, $zero, $v0		#store the input file descriptor in s5
 	add $a0, $zero, $t1		#copy t1(output file location) to a0 for file opening
-	li $a1, 0x8101			#set a1 to 0x8000 for binary, OR with 0x100 for Create, OR with 0x1 for write
-	li $a2, 0x100			#mode doesn't make sense yet, so i'm using 0
+	li $a1, 1				#set a1 to 1 for write with create
+	li $a2, 0				#mode doesn't make sense yet, so i'm using 0
 	li $v0, 13				#set v0 to 13 for file opening
 	syscall					#open the file and put its descriptor in v0
 	add $s6, $zero, $v0		#store the output file descriptor in s6
