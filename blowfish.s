@@ -143,80 +143,82 @@ f:							#takes a0 as "x"
 	sll $t7, $t7, 2			#same for t6
 	sll $t8, $t8, 2			#same for t7
 	sll $t9, $t9, 2			#same for t8
-	la $t6, slistone($t6)	#load the element of slistone at t6 into t6
-	la $t7, slisttwo($t7)	#same, for slisttwo and t7
-	la $t8, slistthree($t8)	#same, for slistthree and t8
-	la $t9, slistfour($t9)	#same, for slistfour and t9
-	add $t6, $t6, $t7		#add t0 to t7 and store in t6
+	lw $t6, slistone($t6)	#load the element of slistone at t6 into t6
+	lw $t7, slisttwo($t7)	#same, for slisttwo and t7
+	lw $t8, slistthree($t8)	#same, for slistthree and t8
+	lw $t9, slistfour($t9)	#same, for slistfour and t9
+	addu $t6, $t6, $t7		#add t6 to t7 and store in t6
 	xor $t6, $t6, $t8		#xor with t8
-	add $v1, $t6, $t9		#add to t9 and store in v1 for output
+	addu $v1, $t6, $t9		#add to t9 and store in v1 for output
 	jr $ra					#jump back to where we came here from.
 
 encrypt:					#takes a2 as "L" and a3 as "R".
-	add $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
+	addu $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
 	li $t0, 0				#initialize t0 to 0 for looping(loop variable)
 	li $t1, 16				#initialize t1 to 16 for looping(end condition)
 eloop:	beq $t0, $t1, endel		#jump to the end of the loop if we've finished
 		la $t2, plist			#load the P array's address into t2
 		sll $t3, $t0, 2			#shift t0 left twice and store in t3, for addressing
-		add $t4, $t2, $t3		#sum t2 and t3 into t4 for accessing the P array
+		addu $t4, $t2, $t3		#sum t2 and t3 into t4 for accessing the P array
 		lw $t5, ($t4)			#load that element into t5
 		xor $a2, $a2, $t5		#xor a2 with t5 and store in a2
-		add $a0, $zero, $a2		#copy a2 into a0 for calling f
+		addu $a0, $zero, $a2		#copy a2 into a0 for calling f
 		jal f					#call f
 		xor $a3, $a3, $v1		#xor a3 with the result of f and store in a3
 		addi $t4, $t4, 4		#add 1 to t4 and store in t4
 		lw $t5, ($t4)			#load the t4th element of the P array into t5
 		xor $a3, $a3, $t5		#xor a3 with t5 and store in a3
-		add $a0, $zero, $a3		#copy a3 into a0 for calling f
+		addu $a0, $zero, $a3		#copy a3 into a0 for calling f
 		jal f					#call f
 		xor $a2, $a2, $v1		#xor a2 with the result of f and store in a2
 		addi $t0, $t0, 2		#increment t0 by 2 for looping(invariant)
 		j eloop					#continue the loop
 endel:
 	la $t0, plist			#load the P array's address into t0
-	addi $t0, $t0, 64		#add 64 to it for the address of the 16th element
+	addiu $t0, $t0, 64		#add 64 to it for the address of the 16th element
 	lw $t1, ($t0)			#load that element into t1
 	xor $a2, $a2, $t1		#xor a2 with the 16th element of the P array, store in a2
-	addi $t0, $t0, 4		#add 4 more for the 17th element
+	addiu $t0, $t0, 4		#add 4 more for the 17th element
 	lw $t1, ($t0)			#load that element into t1
 	xor $a3, $a3, $t1		#xor a3 with the 17th element of the P array, store in a3
-	add $v0, $zero, $a3		#return a3 as "L"
-	add $v1, $zero, $a2		#return a2 as "R"
-	add $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
+	addu $v0, $zero, $a3		#return a3 as "L"
+	addu $v1, $zero, $a2		#return a2 as "R"
+	addu $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
 	jr $ra
 
 decrypt:					#takes a2 as "L" and a3 as "R".
-	add $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
+	addu $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
 	li $t0, 16				#initialize t0 to 16 for looping(loop variable)
 	li $t1, 0				#initialize t1 to 0 for looping(end condition)
 dloop:	beq $t0, $t1, enddl		#jump to the end of the loop if we've finished
 		la $t2, plist			#load the P array's address into t2
 		sll $t3, $t0, 2			#shift t0 left twice and store in t3, for addressing
-		add $t4, $t2, $t3		#sum t2 and t3 into t4 for accessing the P array
+		addu $t4, $t2, $t3		#sum t2 and t3 into t4 for accessing the P array
 		addi $t4, $t4, 4		#add 4 to t4 and store in t4
 		lw $t5, ($t4)			#load that element into t5
 		xor $a2, $a2, $t5		#xor a2 with t5 and store in a2
-		add $a0, $zero, $a2		#copy a2 into a0 for calling f
+		addu $a0, $zero, $a2		#copy a2 into a0 for calling f
 		jal f					#call f
 		xor $a3, $a3, $v1		#xor a3 with the result of f and store in a3
-		addi $t4, $t4, -4		#subtract 1 from t4 and store in t4(getting back to the "i"th element, rather than "i+1"th)
+		addiu $t6, $zero, 4		#set t6 to an unsigned 4 for subtraction
+		subu $t4, $t4, $t6		#subtract t6 from t4 and store in t4(getting back to the "i"th element, rather than "i+1"th)
 		lw $t5, ($t4)			#load the t4th element of the P array into t5
 		xor $a3, $a3, $t5		#xor a3 with t5 and store in a3
-		add $a0, $zero, $a3		#copy a3 into a0 for calling f
+		addu $a0, $zero, $a3		#copy a3 into a0 for calling f
 		jal f					#call f
+		addiu $t6, $zero, 2		#set t6 to 2 for
 		addi $t0, $t0, -2		#decrement t0 by 2 for looping(invariant)
 		j dloop					#continue the loop
 enddl:
 	la $t0, plist			#load the P array's address into t0
 	lw $t1, ($t0)			#load that element into t1
 	xor $a3, $a3, $t1		#xor a3 with the 0th element of the P array, store in a3
-	addi $t0, $t0, 4		#add 4 to it for the address of the 1st element
+	addiu $t0, $t0, 4		#add 4 to it for the address of the 1st element
 	lw $t1, ($t0)			#load that element into t1
 	xor $a2, $a2, $t1		#xor a2 with the 1st element of the P array, store in a2
-	add $v0, $zero, $a3		#return a3 as "L"
-	add $v1, $zero, $a2		#return a2 as "R"
-	add $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
+	addu $v0, $zero, $a3		#return a3 as "L"
+	addu $v1, $zero, $a2		#return a2 as "R"
+	addu $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
 	jr $ra
 
 keysched:					#takes a0 as "key[]" and a1 as "keylen"
@@ -227,13 +229,13 @@ ksl1:	beq $t0, $t1, endkl1	#jump to the end of the loop if we've finished
 		div $t0, $a1			#divide t0 by a1 to get "i % keylen"
 		mfhi $t2				#copy the result of "i % keylen" into t2
 		sll $t2, $t2, 2			#shift t2 left twice for addressing
-		add $t3, $t2, $a0		#copy a0 into t3 and add t2 to it so that t3 is the address of the element in "key[]" that we want
+		addu $t3, $t2, $a0		#copy a0 into t3 and add t2 to it so that t3 is the address of the element in "key[]" that we want
 		lw $t4, ($t3)			#load that element into t4
 		la $t2, plist			#load the address of the P array into t2
 		sll $t3, $t0, 2			#shift t0 left twice and store in t3 for addressing
-		add $t3, $t2, $t3		#sum t2 and t3, store in t3
+		addu $t3, $t2, $t3		#sum t2 and t3, store in t3
 		sw $t4, ($t3)			#store the value we put into t4 in the address t3 ("P[i]")
-		addi $t0, $t0, 1		#increment t0 by 1 for looping(invariant)
+		addiu $t0, $t0, 1		#increment t0 by 1 for looping(invariant)
 		j ksl1					#continue the loop
 endkl1:
 	li $a2, 0				#set a2 to 0 in anticipation of the en/decrypt calls we'll be making
@@ -241,79 +243,79 @@ endkl1:
 	li $t0, 0				#set t0 to 0 for looping(loop variable)
 	li $t1, 18				#set t1 to 18 for looping(end condition)
 ksl2:	beq $t0, $t1, endkl2	#jump to the end of the loop if we've finished
-		add $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
+		addu $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
 		jal encrypt				#encrypt
-		add $t0, $zero, $s7		#copy it back
+		addu $t0, $zero, $s7		#copy it back
 kl2r:	la $t3, plist			#load the P array's address into t3
-		add $t4, $zero, $t0		#copy t0 to t4 for array access
+		addu $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
-		add $t4, $t4, $t3		#add the list address to t4
-		add $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
+		addu $t4, $t4, $t3		#add the list address to t4
+		addu $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("P[i] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("P[i+1] = R")
-		addi $t0, $t0, 1		#increment t0 for looping(invariant)
+		addiu $t0, $t0, 1		#increment t0 for looping(invariant)
 		j ksl2					#continue the loop
 endkl2:
 	li $t0, 0				#set t0 to 0 for looping(loop variable)
 	li $t1, 256				#set t1 to 4 for looping(end condition)
 #we're using 4 loops here instead of a nested loop due to the way we've set up our S boxes
 ksl3:	beq $t0, $t1, endkl3	#jump to the end of the loop if we've finished
-		add $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
+		addu $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
 		jal encrypt				#encrypt
-		add $t0, $zero, $s7		#copy it back
+		addu $t0, $zero, $s7		#copy it back
 kl3r:	la $t3, slistone		#load the first S box's address into t3
-		add $t4, $zero, $t0		#copy t0 to t4 for array access
+		addu $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
-		add $t4, $t4, $t3		#add the list address to t4
-		add $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
+		addu $t4, $t4, $t3		#add the list address to t4
+		addu $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[0][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[0][j+1] = R")
-		addi $t0, $t0, 1		#increment t0 for looping(invariant)
+		addiu $t0, $t0, 1		#increment t0 for looping(invariant)
 		j ksl3					#continue the loop
 endkl3:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl4:	beq $t0, $t1, endkl4	#jump to the end of the loop if we've finished
-		add $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
+		addu $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
 		jal encrypt				#encrypt
-		add $t0, $zero, $s7		#copy it back
+		addu $t0, $zero, $s7		#copy it back
 kl4r:	la $t3, slisttwo		#load the second S box's address into t3
-		add $t4, $zero, $t0		#copy t0 to t4 for array access
+		addu $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
-		add $t4, $t4, $t3		#add the list address to t4
-		add $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
+		addu $t4, $t4, $t3		#add the list address to t4
+		addu $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[1][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[1][j+1] = R")
-		addi $t0, $t0, 1		#increment t0 for looping(invariant)
+		addiu $t0, $t0, 1		#increment t0 for looping(invariant)
 		j ksl4					#continue the loop
 endkl4:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl5:	beq $t0, $t1, endkl5	#jump to the end of the loop if we've finished
-		add $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
+		addu $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
 		jal encrypt				#encrypt
-		add $t0, $zero, $s7		#copy it back
+		addu $t0, $zero, $s7		#copy it back
 kl5r:	la $t3, slistthree		#load the third S box's address into t3
-		add $t4, $zero, $t0		#copy t0 to t4 for array access
+		addu $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
-		add $t4, $t4, $t3		#add the list address to t4
-		add $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
+		addu $t4, $t4, $t3		#add the list address to t4
+		addu $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[2][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[2][j+1] = R")
-		addi $t0, $t0, 1		#increment t0 for looping(invariant)
+		addiu $t0, $t0, 1		#increment t0 for looping(invariant)
 		j ksl5					#continue the loop
 endkl5:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl6:	beq $t0, $t1, endkl6	#jump to the end of the loop if we've finished
-		add $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
+		addu $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
 		jal encrypt				#encrypt
-		add $t0, $zero, $s7		#copy it back
+		addu $t0, $zero, $s7		#copy it back
 kl6r:	la $t3, slistfour		#load the fourth S box's address into t3
-		add $t4, $zero, $t0		#copy t0 to t4 for array access
+		addu $t4, $zero, $t0		#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
-		add $t4, $t4, $t3		#add the list address to t4
-		add $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
+		addu $t4, $t4, $t3		#add the list address to t4
+		addu $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[3][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[3][j+1] = R")
-		addi $t0, $t0, 1		#increment t0 for looping(invariant)
+		addiu $t0, $t0, 1		#increment t0 for looping(invariant)
 		j ksl6					#continue the loop
 endkl6:
 	add $ra, $zero, $s1		#copy s1 back to ra to return to (hopefully) main
