@@ -65,25 +65,25 @@ main:
 	la $a0, ifilebuff		#load the input file name buffer's address into a0
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our file path
-	la $s3, ifilebuff		#store our input file location in s3
+	la $t0, ifilebuff		#store our input file location in t0
 	la $a0, ofileprompt		#load our output file prompt into a0
 	li $v0, 4				#set v0 to 4 for string printing
 	syscall					#print our prompt
 	la $a0, ofilebuff		#load the output file name buffer's address into a0
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our output file path
-	la $s4, ofilebuff		#store our output file location in s4
+	la $t1, ofilebuff		#store our output file location in t1
 	jal nameclean			#clean the names of their newlines
 	la $a0, pockey			#load the proof of concept key's location into a0
 	li $a1, 12				#load 12 into a1 to represent the size of the key
 	jal keysched			#call key_schedule
-	add $a0, $zero, $s3		#copy s3(input file location) to a0 for file opening
+	add $a0, $zero, $t0		#copy t0(input file location) to a0 for file opening
 	li $a1, 0x8000			#set a1 to 0x8000 for binary mode, OR with 0x0 for read
 	li $a2, 0				#mode doesn't make sense yet, so i'm using 0
 	li $v0, 13				#set v0 to 13 for file opening
 	syscall					#open the file and put its descriptor in v0
 	add $s5, $zero, $v0		#store the input file descriptor in s5
-	add $a0, $zero, $s4		#copy s4(output file location) to a0 for file opening
+	add $a0, $zero, $t1		#copy t1(output file location) to a0 for file opening
 	li $a1, 0x8101			#set a1 to 0x8000 for binary, OR with 0x100 for Create, OR with 0x1 for write
 	li $a2, 0x100			#mode doesn't make sense yet, so i'm using 0
 	li $v0, 13				#set v0 to 13 for file opening
@@ -243,14 +243,16 @@ endkl1:
 	li $t0, 0				#set t0 to 0 for looping(loop variable)
 	li $t1, 18				#set t1 to 18 for looping(end condition)
 ksl2:	beq $t0, $t1, endkl2	#jump to the end of the loop if we've finished
-		addu $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
+		addu $s3, $zero, $t0	#copy t0 into s3 to prevent data corruption
+		addu $s4, $zero, $t1	#copy t1 to s4 for same reason
 		jal encrypt				#encrypt
-		addu $t0, $zero, $s7		#copy it back
+		addu $t0, $zero, $s3	#copy it back
+		addu $t1, $zero, $s4	#copy it back
 kl2r:	la $t3, plist			#load the P array's address into t3
-		addu $t4, $zero, $t0		#copy t0 to t4 for array access
+		addu $t4, $zero, $t0	#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
 		addu $t4, $t4, $t3		#add the list address to t4
-		addu $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
+		addu $t5, $t4, 4		#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("P[i] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("P[i+1] = R")
 		addiu $t0, $t0, 1		#increment t0 for looping(invariant)
@@ -260,14 +262,16 @@ endkl2:
 	li $t1, 256				#set t1 to 4 for looping(end condition)
 #we're using 4 loops here instead of a nested loop due to the way we've set up our S boxes
 ksl3:	beq $t0, $t1, endkl3	#jump to the end of the loop if we've finished
-		addu $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
+		addu $s3, $zero, $t0	#copy t0 into s3 to prevent data corruption
+		addu $s4, $zero, $t1	#copy t1 to s4 for same reason
 		jal encrypt				#encrypt
-		addu $t0, $zero, $s7		#copy it back
+		addu $t0, $zero, $s3	#copy it back
+		addu $t1, $zero, $s4	#copy it back
 kl3r:	la $t3, slistone		#load the first S box's address into t3
-		addu $t4, $zero, $t0		#copy t0 to t4 for array access
+		addu $t4, $zero, $t0	#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
 		addu $t4, $t4, $t3		#add the list address to t4
-		addu $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
+		addu $t5, $t4, 4		#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[0][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[0][j+1] = R")
 		addiu $t0, $t0, 1		#increment t0 for looping(invariant)
@@ -275,14 +279,16 @@ kl3r:	la $t3, slistone		#load the first S box's address into t3
 endkl3:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl4:	beq $t0, $t1, endkl4	#jump to the end of the loop if we've finished
-		addu $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
+		addu $s3, $zero, $t0	#copy t0 into s3 to prevent data corruption
+		addu $s4, $zero, $t1	#copy t1 to s4 for same reason
 		jal encrypt				#encrypt
-		addu $t0, $zero, $s7		#copy it back
+		addu $t0, $zero, $s3	#copy it back
+		addu $t1, $zero, $s4	#copy it back
 kl4r:	la $t3, slisttwo		#load the second S box's address into t3
-		addu $t4, $zero, $t0		#copy t0 to t4 for array access
+		addu $t4, $zero, $t0	#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
 		addu $t4, $t4, $t3		#add the list address to t4
-		addu $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
+		addu $t5, $t4, 4		#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[1][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[1][j+1] = R")
 		addiu $t0, $t0, 1		#increment t0 for looping(invariant)
@@ -290,14 +296,16 @@ kl4r:	la $t3, slisttwo		#load the second S box's address into t3
 endkl4:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl5:	beq $t0, $t1, endkl5	#jump to the end of the loop if we've finished
-		addu $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
+		addu $s3, $zero, $t0	#copy t0 into s3 to prevent data corruption
+		addu $s4, $zero, $t1	#copy t1 to s4 for same reason
 		jal encrypt				#encrypt
-		addu $t0, $zero, $s7		#copy it back
+		addu $t0, $zero, $s3	#copy it back
+		addu $t1, $zero, $s4	#copy it back
 kl5r:	la $t3, slistthree		#load the third S box's address into t3
-		addu $t4, $zero, $t0		#copy t0 to t4 for array access
+		addu $t4, $zero, $t0	#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
 		addu $t4, $t4, $t3		#add the list address to t4
-		addu $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
+		addu $t5, $t4, 4		#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[2][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[2][j+1] = R")
 		addiu $t0, $t0, 1		#increment t0 for looping(invariant)
@@ -305,14 +313,16 @@ kl5r:	la $t3, slistthree		#load the third S box's address into t3
 endkl5:
 	li $t0, 0				#reset t0 to 0 for looping(still using 256 as end condition)
 ksl6:	beq $t0, $t1, endkl6	#jump to the end of the loop if we've finished
-		addu $s7, $zero, $t0		#copy t0 into s7 to prevent data corruption
+		addu $s3, $zero, $t0	#copy t0 into s3 to prevent data corruption
+		addu $s4, $zero, $t1	#copy t1 to s4 for same reason
 		jal encrypt				#encrypt
-		addu $t0, $zero, $s7		#copy it back
+		addu $t0, $zero, $s3	#copy it back
+		addu $t1, $zero, $s4	#copy it back
 kl6r:	la $t3, slistfour		#load the fourth S box's address into t3
-		addu $t4, $zero, $t0		#copy t0 to t4 for array access
+		addu $t4, $zero, $t0	#copy t0 to t4 for array access
 		sll $t4, $t4, 2			#shift t4 left twice for addressing
 		addu $t4, $t4, $t3		#add the list address to t4
-		addu $t5, $t4, 4			#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
+		addu $t5, $t4, 4		#set t5 to t4 + 4 for accessing the next element in the array(after the one at t4)
 		sw $a2, ($t4)			#set the P array's value at t4 equal to a2("S[3][j] = L")
 		sw $a3, ($t5)			#set the P array's value at t5 equal to a3("S[3][j+1] = R")
 		addiu $t0, $t0, 1		#increment t0 for looping(invariant)
