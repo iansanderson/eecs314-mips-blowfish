@@ -172,13 +172,23 @@ findli:
 	li $t0, 7				#set t0 to 7 for the last byte of the buffer so we can remove padding
 	li $t1, 0x80			#to check against for finding the beginning of the padding
 	li $t2, 0				#just so it's not 0x80 before the loop
+	li $t3, 0				#for killing the loop if we've not found the 0x80 in the last 8 bytes
 find80:	beq $t2, $t1, found		#we're done if we found it
+		beq $t0, $t3, no80		#we're done if we went through all 8 bytes and didn't find it, too.
 		lb $t2, buffer($t0)		#load in the byte
 		addi $t0, $t0, -1		#decrement to the next byte
 		j find80				#keep looping
 found:
 	addi $a2, $t0, 1		#how many bytes we're writing goes in a2
-	syscall					#v0 is still 14, a1 is still buffer
+	add $a0, $zero, $s6		#load output file descriptor into a0 for writing
+	li $v0, 14				#for writing to the file
+	syscall					#a1 is still buffer
+	j endml
+no80:
+	addi $a2, $zero, 8		#writing all 8 bytes because the 0x80 wasn't present
+	add $a0, $zero, $s6		#load output file descriptor into a0 for writing
+	li $v0, 14				#for writing to the file
+	syscall					#a1 is still buffer
 endml:
 	li $v0, 16 				#set v0 to 16 for file closing
 	add $a0, $zero, $s5		#copy the input file descriptor into a0 to close it
