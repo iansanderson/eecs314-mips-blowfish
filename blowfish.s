@@ -169,10 +169,10 @@ f:							#takes a0 as "x"
 	andi $t7, $t7, 0xff		#and our 16-bit-shifted copy of s0 with 255
 	andi $t8, $t8, 0xff		#again, for 8-bit
 	andi $t9, $t9, 0xff		#again, for the non-shifted one
-	sll $t6, $t6, 2			#shift t0 left 2 for use as an array index
-	sll $t7, $t7, 2			#same for t6
-	sll $t8, $t8, 2			#same for t7
-	sll $t9, $t9, 2			#same for t8
+	sll $t6, $t6, 2			#shift t6 left 2 for use as an array index
+	sll $t7, $t7, 2			#same for t7
+	sll $t8, $t8, 2			#same for t8
+	sll $t9, $t9, 2			#same for t9
 	lw $t6, slistone($t6)	#load the element of slistone at t6 into t6
 	lw $t7, slisttwo($t7)	#same, for slisttwo and t7
 	lw $t8, slistthree($t8)	#same, for slistthree and t8
@@ -183,7 +183,7 @@ f:							#takes a0 as "x"
 	jr $ra					#jump back to where we came here from.
 
 encrypt:					#takes a2 as "L" and a3 as "R".
-	addu $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
+	addu $s2, $zero, $ra	#copy ra into s2 so we can jump to other functions while here and still get back correctly
 	li $t0, 0				#initialize t0 to 0 for looping(loop variable)
 	li $t1, 16				#initialize t1 to 16 for looping(end condition)
 eloop:	beq $t0, $t1, endel		#jump to the end of the loop if we've finished
@@ -192,13 +192,13 @@ eloop:	beq $t0, $t1, endel		#jump to the end of the loop if we've finished
 		addu $t4, $t2, $t3		#sum t2 and t3 into t4 for accessing the P array
 		lw $t5, ($t4)			#load that element into t5
 		xor $a2, $a2, $t5		#xor a2 with t5 and store in a2
-		addu $a0, $zero, $a2		#copy a2 into a0 for calling f
+		addu $a0, $zero, $a2	#copy a2 into a0 for calling f
 		jal f					#call f
 		xor $a3, $a3, $v1		#xor a3 with the result of f and store in a3
 		addi $t4, $t4, 4		#add 1 to t4 and store in t4
 		lw $t5, ($t4)			#load the t4th element of the P array into t5
 		xor $a3, $a3, $t5		#xor a3 with t5 and store in a3
-		addu $a0, $zero, $a3		#copy a3 into a0 for calling f
+		addu $a0, $zero, $a3	#copy a3 into a0 for calling f
 		jal f					#call f
 		xor $a2, $a2, $v1		#xor a2 with the result of f and store in a2
 		addi $t0, $t0, 2		#increment t0 by 2 for looping(invariant)
@@ -211,13 +211,13 @@ endel:
 	addiu $t0, $t0, 4		#add 4 more for the 17th element
 	lw $t1, ($t0)			#load that element into t1
 	xor $a3, $a3, $t1		#xor a3 with the 17th element of the P array, store in a3
-	addu $v0, $zero, $a3		#return a3 as "L"
-	addu $v1, $zero, $a2		#return a2 as "R"
-	addu $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
+	addu $v0, $zero, $a3	#return a3 as "L"
+	addu $v1, $zero, $a2	#return a2 as "R"
+	addu $ra, $zero, $s2	#copy s2 back to ra to return to (hopefully) keysched
 	jr $ra
 
 decrypt:					#takes a2 as "L" and a3 as "R".
-	addu $s2, $zero, $ra		#copy ra into s2 so we can jump to other functions while here and still get back correctly
+	addu $s2, $zero, $ra	#copy ra into s2 so we can jump to other functions while here and still get back correctly
 	li $t0, 16				#initialize t0 to 16 for looping(loop variable)
 	li $t1, 0				#initialize t1 to 0 for looping(end condition)
 dloop:	beq $t0, $t1, enddl		#jump to the end of the loop if we've finished
