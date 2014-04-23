@@ -89,12 +89,13 @@ main:
 	la $a0, pockey			#load the proof of concept key's location into a0
 	li $a1, 12				#load 12 into a1 to represent the size of the key
 	jal keysched			#call key_schedule
+	#first read before loop so that pad checking on end is easier for decrypt
+	li $v0, 14				#set v0 to 14 for file reading
+	add $a0, $zero, $s5		#load input file descriptor into a0 for reading
+	la $a1, buffer			#load buffer's address into a1 for reading
+	li $a2, 8				#load 8 into a2 to cap the bytes read at 64
+	syscall					#read from the file
 mainloop:						#Here's where we actually do the en/decryption
-		li $v0, 14				#set v0 to 14 for file reading
-		add $a0, $zero, $s5		#load input file descriptor into a0 for reading
-		la $a1, buffer			#load buffer's address into a1 for reading
-		li $a2, 8				#load 8 into a2 to cap the bytes read at 64
-		syscall					#read from the file
 		blez $v0, endml			#jump to finish if we hit eof or error(after reading, v0 is 0 if eof was hit, negative if error occurred
 		add $t3, $zero, $v0		#store v0 (number of bytes read) in t3 for checking against t2 to prevent attempting to use data we don't have.
 		li $a2, 0				#initialize a2 to 0 so we don't screw ourselves up if there's not enough data
@@ -157,7 +158,27 @@ mlrest:	li $t0, 0				#load 0 into t0 to serve as an offset for storing "L"
 		la $a1, buffer			#just in case
 		li $a2, 8				#load 8 into a2 because that's how many bytes we're writing
 		syscall					#write to the file
-		j mainloop				#keep looping
+		#read for next iteration
+		li $v0, 14				#set v0 to 14 for file reading
+		add $a0, $zero, $s5		#load input file descriptor into a0 for reading
+		la $a1, buffer			#load buffer's address into a1 for reading
+		li $a2, 8				#load 8 into a2 to cap the bytes read at 64
+		syscall					#read from the file
+		beqz $v0, findli		#go to the final decrypt loop iteration if we didn't have any bytes left
+		j mainloop				#otherwise keep looping
+findli:
+	li $t0, 1
+	beq $t0, $s0, mainloop	#if behavior is encrypt, we actually don't need to be here and should go back into the main loop
+	li $t0, 7				#set t0 to 7 for the last byte of the buffer so we can remove padding
+	li $t1, 0x80			#to check against for finding the beginning of the padding
+	li $t2, 0				#just so it's not 0x80 before the loop
+find80:	beq $t2, $t1, found		#we're done if we found it
+		lb $t2, buffer($t0)		#load in the byte
+		addi $t0, $t0, -1		#decrement to the next byte
+		j find80				#keep looping
+found:
+	addi $a2, $t0, 1		#how many bytes we're writing goes in a2
+	syscall					#v0 is still 14, a1 is still buffer
 endml:
 	li $v0, 16 				#set v0 to 16 for file closing
 	add $a0, $zero, $s5		#copy the input file descriptor into a0 to close it
