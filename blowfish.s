@@ -101,45 +101,50 @@ mainloop:						#Here's where we actually do the en/decryption
 		li $a3, 0				#same for a3
 		#load the first half of the buffer for "L"
 		li $t2, 0				#because for some reason we can't do buffer(0)
-		beq $t2, $t3, mltest
+		beq $t2, $t3, mlpad
 		lb $t0, buffer($t2)		#load the first byte of the buffer into t0
 		sll $t0, $t0, 8			#shift t0 left 8 places to prepare for the next byte
 		li $t2, 1
 		lb $t1, buffer($t2)		#load the second byte of the buffer into t1
-		beq $t2, $t3, mltest
+		beq $t2, $t3, mlpad
 		add $t0, $t0, $t1		#copy t1 into the lowest 8 bits of t0
 		sll $t0, $t0, 8			#shift t0 again for the third byte
 		li $t2, 2
 		lb $t1, buffer($t2)		#load the third byte
-		beq $t2, $t3, mltest
+		beq $t2, $t3, mlpad
 		add $t0, $t0, $t1		#copy into lowest 8 bits again
 		sll $t0, $t0, 8			#shift again to prepare for fourth byte
 		li $t2, 3
 		lb $t1, buffer($t2)		#load fourth byte
-		beq $t2, $t3, mltest
+		beq $t2, $t3, mlpad
 		add $t0, $t0, $t1		#copy last byte into $t0
 		add $a2, $zero, $t0		#copy t0 into a2 for when we call en/decrypt
 		#load the second half of the buffer for "R"
 		li $t2, 4
-		beq $t2, $t3, mltest
+		beq $t2, $t3, mlpad
 		lb $t0, buffer($t2)		#load the fifth byte of the buffer into t0
 		sll $t0, $t0, 8			#shift for next byte
 		li $t2, 5
 		lb $t1, buffer($t2)		#really you should know what's going on by now
-		beq $t2, $t3, mltest
+		beq $t2, $t3, mlpad
 		add $t0, $t0, $t1
 		sll $t0, $t0, 8
 		li $t2, 6
 		lb $t1, buffer($t2)
-		beq $t2, $t3, mltest
+		beq $t2, $t3, mlpad
 		add $t0, $t0, $t1
 		sll $t0, $t0, 8
 		li $t2, 7
 		lb $t1, buffer($t2)
-		add $t0, $t0, $t1
+		j mltest
+		#mlpad will never be used for decrypting because of block size, so no checks of behavior are required here.
+mlpad:	li $t3, 0x80			#we're going to start the padding with this byte
+		sb $t3, buffer($t2)		#store that byte at the beginning of the padding
+		#we don't need to continue padding because the words have 0s after their useful data
+mltest:	add $t0, $t0, $t1
 		add $a3, $zero, $t0		#copy t0 into a3 for when we call en/decrypt
 		li $t0, 1				#load 1 into t0 for behavior checking
-mltest:	beq $s0, $t0, mlen		#go to where we encrypt if behavior is 1
+		beq $s0, $t0, mlen		#go to where we encrypt if behavior is 1
 		jal decrypt				#otherwise, decrypt
 		j mlrest				#and jump to the rest of the main loop
 mlen:	jal encrypt				#encrypt
@@ -149,6 +154,7 @@ mlrest:	li $t0, 0				#load 0 into t0 to serve as an offset for storing "L"
 		sw $v1, buffer($t0)		#store "R" back into the second half of the buffer
 		li $v0, 15				#set v0 to 15 for file writing
 		add $a0, $zero, $s6		#load output file descriptor into a0 for writing(a1 should still have the buffer's address)
+		la $a1, buffer			#just in case
 		li $a2, 8				#load 8 into a2 because that's how many bytes we're writing
 		syscall					#write to the file
 		j mainloop				#keep looping
