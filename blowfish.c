@@ -33,7 +33,7 @@ uint32_t f (uint32_t x) {
 	return y;
 }
 
-void encrypt (uint32_t *xl, uint32_t *xr) {
+void encrypt (uint32_t *Xl, uint32_t *Xr) {
 	uint32_t Xl;
 	uint32_t Xr;
 	uint32_t temp;
@@ -62,7 +62,7 @@ void encrypt (uint32_t *xl, uint32_t *xr) {
 	*xr = Xr;
 }
 
-void decrypt (uint32_t *xl, uint32_t *xr) {
+void decrypt (uint32_t *Xl, uint32_t *Xr) {
 	uint32_t Xl;
 	uint32_t Xr;
 	uint32_t temp;
