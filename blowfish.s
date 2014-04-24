@@ -139,7 +139,7 @@ mainloop:						#Here's where we actually do the en/decryption
 		lb $t1, buffer($t2)
 		j mltest
 		#mlpad will never be used for decrypting because of block size, so no checks of behavior are required here.
-mlpad:	li $t3, 0x80			#we're going to start the padding with this byte
+mlpad:	li $t3, 0				#we're going to start the padding with this byte
 		sb $t3, buffer($t2)		#store that byte at the beginning of the padding
 		#we don't need to continue padding because the words have 0s after their useful data
 mltest:	add $t0, $t0, $t1
@@ -164,31 +164,7 @@ mlrest:	li $t0, 0				#load 0 into t0 to serve as an offset for storing "L"
 		la $a1, buffer			#load buffer's address into a1 for reading
 		li $a2, 8				#load 8 into a2 to cap the bytes read at 64
 		syscall					#read from the file
-		beqz $v0, findli		#go to the final decrypt loop iteration if we didn't have any bytes left
 		j mainloop				#otherwise keep looping
-findli:
-	li $t0, 1
-	beq $t0, $s0, mainloop	#if behavior is encrypt, we actually don't need to be here and should go back into the main loop
-	li $t0, 7				#set t0 to 7 for the last byte of the buffer so we can remove padding
-	li $t1, 0x80			#to check against for finding the beginning of the padding
-	li $t2, 0				#just so it's not 0x80 before the loop
-	li $t3, 0				#for killing the loop if we've not found the 0x80 in the last 8 bytes
-find80:	beq $t2, $t1, found		#we're done if we found it
-		beq $t0, $t3, no80		#we're done if we went through all 8 bytes and didn't find it, too.
-		lb $t2, buffer($t0)		#load in the byte
-		addi $t0, $t0, -1		#decrement to the next byte
-		j find80				#keep looping
-found:
-	addi $a2, $t0, 1		#how many bytes we're writing goes in a2
-	add $a0, $zero, $s6		#load output file descriptor into a0 for writing
-	li $v0, 14				#for writing to the file
-	syscall					#a1 is still buffer
-	j endml
-no80:
-	addi $a2, $zero, 8		#writing all 8 bytes because the 0x80 wasn't present
-	add $a0, $zero, $s6		#load output file descriptor into a0 for writing
-	li $v0, 14				#for writing to the file
-	syscall					#a1 is still buffer
 endml:
 	li $v0, 16 				#set v0 to 16 for file closing
 	add $a0, $zero, $s5		#copy the input file descriptor into a0 to close it
