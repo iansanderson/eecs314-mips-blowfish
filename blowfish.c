@@ -25,7 +25,7 @@ uint32_t f (uint32_t x) {
 	b = x & 0x00FF;
 	x >>= 8;
 	a = x & 0x00FF;
-	//y = ((S[0][a] + S[1][b]) ^ S[2][c]) + S[3][d];
+   //y = ((S[0][a] + S[1][b]) ^ S[2][c]) + S[3][d];
 	y = S[0][a] + S[1][b];
 	y = y ^ S[2][c];
 	y = y + S[3][d];
@@ -90,15 +90,15 @@ void convertBADC(char *convThis){ //note that this will ALWAYS be 4 bytes becaus
 	//from:	BADC
 	//to:	ABCD
 	//or the other way, who the hell cares
-	char tmp[4];
-	tmp[0] = convThis[1];
-	tmp[1] = convThis[0];
-	tmp[2] = convThis[3];
-	tmp[3] = convThis[2];
-	convThis[0] = tmp[0];
-	convThis[1] = tmp[1];
-	convThis[2] = tmp[2];
-	convThis[3] = tmp[3];
+char tmp[4];
+tmp[0] = convThis[1];
+tmp[1] = convThis[0];
+tmp[2] = convThis[3];
+tmp[3] = convThis[2];
+convThis[0] = tmp[0];
+convThis[1] = tmp[1];
+convThis[2] = tmp[2];
+convThis[3] = tmp[3];
 }
 
 int main(){
@@ -166,13 +166,13 @@ int main(){
 			printf("\n%2x%2x%2x%2x\n%2x%2x%2x%2x\n", buffL[0], buffL[1], buffL[2], buffL[3], buffR[0], buffR[1], buffR[2], buffR[3]);
 		}
 		uint32_t L = (buffL[0] << 24)
-					+ (buffL[1] << 16)
-					+ (buffL[2] << 8)
-					+ (buffL[3]);
+		+ (buffL[1] << 16)
+		+ (buffL[2] << 8)
+		+ (buffL[3]);
 		uint32_t R = (buffR[0] << 24)
-					+ (buffR[1] << 16)
-					+ (buffR[2] << 8)
-					+ (buffR[3]);
+		+ (buffR[1] << 16)
+		+ (buffR[2] << 8)
+		+ (buffR[3]);
 		printf("\n\t%8x\n\t%8x\n", L, R);
 		if(behavior == 1){
 			encrypt(&L, &R);
