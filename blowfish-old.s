@@ -1,5 +1,5 @@
 main:
-		la $a0, behaviorprompt	#load our behavior prompt into a0
+	la $a0, behaviorprompt	#load our behavior prompt into a0
 	li $v0, 4				#set v0 to 4 for string printing
 	syscall					#print our prompt
 	li $v0, 5				#set v0 to 5 for integer reading
@@ -43,8 +43,96 @@ main:
 	la $a1, buffer			#load buffer's address into a1 for reading
 	li $a2, 8				#load 8 into a2 to cap the bytes read at 64
 	syscall					#read from the file
-
-	j finish				#We're done here.
+mainloop:						#Here's where we actually do the en/decryption
+		blez $v0, endml			#jump to finish if we hit eof or error(after reading, v0 is 0 if eof was hit, negative if error occurred
+		add $t3, $zero, $v0		#store v0 (number of bytes read) in t3 for checking against t2 to prevent attempting to use data we don't have.
+		li $a2, 0				#initialize a2 to 0 so we don't screw ourselves up if there's not enough data
+		li $a3, 0				#same for a3
+		#load the first half of the buffer for "L"
+		li $t2, 0				#because for some reason we can't do buffer(0)
+		beq $t2, $t3, mlpad
+		lb $t0, buffer($t2)		#load the first byte of the buffer into t0
+		sll $t0, $t0, 8			#shift t0 left 8 places to prepare for the next byte
+		li $t2, 1
+		lb $t1, buffer($t2)		#load the second byte of the buffer into t1
+		beq $t2, $t3, mlpad
+		add $t0, $t0, $t1		#copy t1 into the lowest 8 bits of t0
+		sll $t0, $t0, 8			#shift t0 again for the third byte
+		li $t2, 2
+		lb $t1, buffer($t2)		#load the third byte
+		beq $t2, $t3, mlpad
+		add $t0, $t0, $t1		#copy into lowest 8 bits again
+		sll $t0, $t0, 8			#shift again to prepare for fourth byte
+		li $t2, 3
+		lb $t1, buffer($t2)		#load fourth byte
+		beq $t2, $t3, mlpad
+		add $t0, $t0, $t1		#copy last byte into $t0
+		add $a2, $zero, $t0		#copy t0 into a2 for when we call en/decrypt
+		#load the second half of the buffer for "R"
+		li $t2, 4
+		beq $t2, $t3, mlpad
+		lb $t0, buffer($t2)		#load the fifth byte of the buffer into t0
+		sll $t0, $t0, 8			#shift for next byte
+		li $t2, 5
+		lb $t1, buffer($t2)		#really you should know what's going on by now
+		beq $t2, $t3, mlpad
+		add $t0, $t0, $t1
+		sll $t0, $t0, 8
+		li $t2, 6
+		lb $t1, buffer($t2)
+		beq $t2, $t3, mlpad
+		add $t0, $t0, $t1
+		sll $t0, $t0, 8
+		li $t2, 7
+		lb $t1, buffer($t2)
+		j mltest
+		#mlpad will never be used for decrypting because of block size, so no checks of behavior are required here.
+mlpad:	li $t3, 0				#we're going to start the padding with this byte
+		sb $t3, buffer($t2)		#store that byte at the beginning of the padding
+		#we don't need to continue padding because the words have 0s after their useful data
+mltest:	add $t0, $t0, $t1
+		add $a3, $zero, $t0		#copy t0 into a3 for when we call en/decrypt
+		li $t0, 1				#load 1 into t0 for behavior checking
+		beq $s0, $t0, mlen		#go to where we encrypt if behavior is 1
+		jal decrypt				#otherwise, decrypt
+		add $a0, $zero, $a2		#load a2 into a0 for badc conversion
+		jal badc				#convert to badc
+		add $a2, $zero, $a0		#copy it back now that it's converted
+		add $a0, $zero, $a3		#same for a3
+		jal badc
+		add $a3, $zero, $a0
+		j mlrest				#and jump to the rest of the main loop
+mlen:	add $a0, $zero, $a2		#load a2 into a0 for badc conversion
+		jal badc				#convert to badc
+		add $a2, $zero, $a0		#copy it back now that it's converted
+		add $a0, $zero, $a3		#same for a3
+		jal badc
+		add $a3, $zero, $a0
+		jal encrypt				#encrypt
+mlrest:	li $t0, 0				#load 0 into t0 to serve as an offset for storing "L"
+		sw $v0, buffer($t0)		#store "L" back into the first half of the buffer
+		li $t0, 4				#load 4 into t0 to serve as an offset for storing "R"
+		sw $v1, buffer($t0)		#store "R" back into the second half of the buffer
+		li $v0, 15				#set v0 to 15 for file writing
+		add $a0, $zero, $s6		#load output file descriptor into a0 for writing(a1 should still have the buffer's address)
+		la $a1, buffer			#just in case
+		li $a2, 8				#load 8 into a2 because that's how many bytes we're writing
+		syscall					#write to the file
+		#read for next iteration
+		li $v0, 14				#set v0 to 14 for file reading
+		add $a0, $zero, $s5		#load input file descriptor into a0 for reading
+		la $a1, buffer			#load buffer's address into a1 for reading
+		li $a2, 8				#load 8 into a2 to cap the bytes read at 64
+		syscall					#read from the file
+		j mainloop				#otherwise keep looping
+endml:
+	li $v0, 16 				#set v0 to 16 for file closing
+	add $a0, $zero, $s5		#copy the input file descriptor into a0 to close it
+	syscall					#close the file
+	li $v0, 16				#set it again because it was changed by the syscall
+	add $a0, $zero, $s6		#copy the output file descriptor into a0 to close it
+	syscall					#close the file
+	j finish				#we're done here
 
 badc:						#takes a0 as "convThis"
 	addu $t8, $a0, 4		#for convthis[1]
