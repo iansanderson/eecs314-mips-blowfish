@@ -48,6 +48,12 @@ main:
 	li $a2, 0x01000000		#load 0x01000000 into a2 to cap the bytes read to the buffer size
 	syscall					#read from the file
 
+	li $v0, 16 				#set v0 to 16 for file closing
+	add $a0, $zero, $s5		#copy the input file descriptor into a0 to close it
+	syscall					#close the file
+	li $v0, 16				#set it again because it was changed by the syscall
+	add $a0, $zero, $s6		#copy the output file descriptor into a0 to close it
+	syscall					#close the file
 	j finish				#We're done here.
 
 f:							#takes a0 as "x"
