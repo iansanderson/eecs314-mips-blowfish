@@ -38,28 +38,17 @@ main:
 	li $a1, 12				#load 12 into a1 to represent the size of the key
 	jal keysched			#call key_schedule
 	#first read before loop so that pad checking on end is easier for decrypt
+	li $a0, 0x01000000		#allocating 16MiB for file. let's hope it's not bigger.
+	li $v0, 9				#for heap allocation
+	syscall					#allocate it
+	add $s3, $zero, $v0		#copy the heap address into a safe place
 	li $v0, 14				#set v0 to 14 for file reading
 	add $a0, $zero, $s5		#load input file descriptor into a0 for reading
-	la $a1, buffer			#load buffer's address into a1 for reading
-	li $a2, 8				#load 8 into a2 to cap the bytes read at 64
+	add $a1, $zero, $s3		#load buffer's address into a1 for reading
+	li $a2, 0x01000000		#load 0x01000000 into a2 to cap the bytes read to the buffer size
 	syscall					#read from the file
 
 	j finish				#We're done here.
-
-badc:						#takes a0 as "convThis"
-	addu $t8, $a0, 4		#for convthis[1]
-	lb $t4, ($t8)			#tmp[0] = convthis[1]
-	addu $t9, $a0, 0		#for convthis[0]
-	lb $t5, ($t9)			#tmp[1] = convthis[0]
-	sb $t5, ($t8)			#convthis[0] = tmp[1]
-	sb $t4, ($t9)			#convthis[1] = tmp[0]
-	addu $t8, $a0, 12		#for convthis[3]
-	lb $t6, ($t8)			#tmp[2] = convthis[3]
-	addu $t9, $a0, 8		#for convthis[2]
-	lb $t7, ($t9)			#tmp[3] = convthis[2]
-	sb $t7, ($t8)			#convthis[2] = tmp[3]
-	sb $t6, ($t9)			#convthis[3] = tmp[2]
-	jr $ra
 
 f:							#takes a0 as "x"
 	srl $t6, $a0, 24		#shift a0 right 24 bits, store in t6
