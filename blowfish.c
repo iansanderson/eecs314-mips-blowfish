@@ -33,64 +33,40 @@ uint32_t f (uint32_t x) {
 	return y;
 }
 
-void encrypt (uint32_t *Xl, uint32_t *Xr) {
-	uint32_t Xl;
-	uint32_t Xr;
-	uint32_t temp;
-	char i;
-
-	Xl = *xl;
-	Xr = *xr;
-
-	for (i = 0; i < N; ++i) {
-		Xl = Xl ^ P[i];
-		Xr = F(Xl) ^ Xr;
-
-		temp = Xl;
-		Xl = Xr;
-		Xr = temp;
+void encrypt (uint32_t *L, uint32_t *R) {
+	uint32_t l = *L;
+	uint32_t r = *R;
+	for (int i=0 ; i<16 ; i += 2) {
+		l ^= P[i];
+		r ^= f(l);
+		r ^= P[i+1];
+		l ^= f(r);
 	}
-
-	temp = Xl;
-	Xl = Xr;
-	Xr = temp;
-
-	Xr = Xr ^ P[N];
-	Xl = Xl ^ P[N + 1];
-
-	*xl = Xl;
-	*xr = Xr;
+	l ^= P[16];
+	r ^= P[17];
+	uint32_t tmp = l;
+	l = r;
+	r = tmp;
+	*L = l;
+	*R = r;
 }
 
-void decrypt (uint32_t *Xl, uint32_t *Xr) {
-	uint32_t Xl;
-	uint32_t Xr;
-	uint32_t temp;
-	char i;
-
-	Xl = *xl;
-	Xr = *xr;
-
-	for (i = N + 1; i > 1; --i) {
-		Xl = Xl ^ P[i];
-		Xr = F(Xl) ^ Xr;
-
-	   /* Exchange Xl and Xr */
-		temp = Xl;
-		Xl = Xr;
-		Xr = temp;
+void decrypt (uint32_t *L, uint32_t *R) {
+	uint32_t l = *L;
+	uint32_t r = *R;
+	for (int i=16 ; i > 0 ; i -= 2) {
+		l ^= P[i+1];
+		r ^= f(l);
+		r ^= P[i];
+		l ^= f(r);
 	}
-
-    /* Exchange Xl and Xr */
-	temp = Xl;
-	Xl = Xr;
-	Xr = temp;
-
-	Xr = Xr ^ P[1];
-	Xl = Xl ^ P[0];
-
-	*xl = Xl;
-	*xr = Xr;
+	l ^= P[1];
+	r ^= P[0];
+	uint32_t tmp = l;
+	l = r;
+	r = tmp;
+	*L = l;
+	*R = r;
 }
 
 void key_schedule (uint32_t key[], int keylen) {
