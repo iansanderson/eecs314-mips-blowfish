@@ -53,25 +53,50 @@ void decrypt (uint32_t *L, uint32_t *R) {
 }
 
 void key_schedule (uint32_t key[], int keylen) {
-	for (int i=0 ; i<18 ; ++i){
-		P[i] ^= key[i % keylen];
+	int          i;
+	int          j;
+	int          k;
+	uint32_t  data;
+	uint32_t  datal;
+	uint32_t  datar;
+
+	j = 0;
+	for (i = 0; i < 18; ++i) {
+		data = 0x00000000;
+		for (k = 0; k < 4; ++k) {
+			data = (data << 8) | key[j];
+			j = j + 1;
+			if (j >= keylen) {
+				j = 0;
+			}
+		}
+		P[i] = P[i] ^ data;
 	}
-	uint32_t L = 0, R = 0;
-	for (int i=0 ; i<18 ; i+=2) {
-		encrypt (&L, &R);
-		P[i] = L; P[i+1] = R;
+
+	datal = 0x00000000;
+	datar = 0x00000000;
+
+	for (i = 0; i < 18; i += 2) {
+		encrypt(&datal, &datar);
+
+		P[i] = datal;
+		P[i + 1] = datar;
 	}
-	for (int i=0 ; i<4 ; ++i) {
-		for (int j=0 ; j<256; j+=2) {
-			encrypt (&L, &R);
-			S[i][j] = L; S[i][j+1] = R;
+
+	for (i = 0; i < 4; ++i) {
+		for (j = 0; j < 256; j += 2) {
+
+			encrypt(&datal, &datar);
+
+			S[i][j] = datal;
+			S[i][j + 1] = datar;
 		}
 	}
 }
 
 void convertBADC(char *convThis){ //note that this will ALWAYS be 4 bytes because FUCK YOU I DON'T GIVE A SHIT ANYMORE
-	//from:	BADC
-	//to:	ABCD
+	//from: BADC
+	//to:   ABCD
 	//or the other way, who the hell cares
 	char tmp[4];
 	tmp[0] = convThis[1];
@@ -125,21 +150,21 @@ int main(){
 		buffR[2] = 0;
 		buffR[3] = 0;
 		switch(bread){
-		case 8:
+			case 8:
 			buffR[3] = buff[7];
-		case 7:
+			case 7:
 			buffR[2] = buff[6];
-		case 6:
+			case 6:
 			buffR[1] = buff[5];
-		case 5:
+			case 5:
 			buffR[0] = buff[4];
-		case 4:
+			case 4:
 			buffL[3] = buff[3];
-		case 3:
+			case 3:
 			buffL[2] = buff[2];
-		case 2:
+			case 2:
 			buffL[1] = buff[1];
-		case 1:
+			case 1:
 			buffL[0] = buff[0];
 		}
 		if(behavior == 1){
@@ -149,13 +174,13 @@ int main(){
 			printf("\n%2x%2x%2x%2x\n%2x%2x%2x%2x\n", buffL[0], buffL[1], buffL[2], buffL[3], buffR[0], buffR[1], buffR[2], buffR[3]);
 		}
 		uint32_t L = (buffL[0] << 24)
-					+ (buffL[1] << 16)
-					+ (buffL[2] << 8)
-					+ (buffL[3]);
+		+ (buffL[1] << 16)
+		+ (buffL[2] << 8)
+		+ (buffL[3]);
 		uint32_t R = (buffR[0] << 24)
-					+ (buffR[1] << 16)
-					+ (buffR[2] << 8)
-					+ (buffR[3]);
+		+ (buffR[1] << 16)
+		+ (buffR[2] << 8)
+		+ (buffR[3]);
 		printf("\n\t%8x\n\t%8x\n", L, R);
 		if(behavior == 1){
 			encrypt(&L, &R);
