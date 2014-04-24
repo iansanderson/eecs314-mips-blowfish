@@ -213,5 +213,8 @@ int main(){
 	}
 	fclose(ifile);
 	fclose(ofile);
+	free(buff);
+	free(buffR);
+	free(buffL);
 	return 0;
 }
