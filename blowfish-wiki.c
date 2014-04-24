@@ -12,25 +12,8 @@ uint32_t S[4][256] = {
 }; // S-boxes
 
 uint32_t f (uint32_t x) {
-	unsigned char a;
-	unsigned char b;
-	unsigned char c;
-	unsigned char d;
-	uint32_t  y;
-
-	d = x & 0x00FF;
-	x >>= 8;
-	c = x & 0x00FF;
-	x >>= 8;
-	b = x & 0x00FF;
-	x >>= 8;
-	a = x & 0x00FF;
-   //y = ((S[0][a] + S[1][b]) ^ S[2][c]) + S[3][d];
-	y = S[0][a] + S[1][b];
-	y = y ^ S[2][c];
-	y = y + S[3][d];
-
-	return y;
+	uint32_t h = S[0][x >> 24] + S[1][x >> 16 & 0xff];
+	return ( h ^ S[2][x >> 8 & 0xff] ) + S[3][x & 0xff];
 }
 
 void encrypt (uint32_t *L, uint32_t *R) {
@@ -90,15 +73,15 @@ void convertBADC(char *convThis){ //note that this will ALWAYS be 4 bytes becaus
 	//from:	BADC
 	//to:	ABCD
 	//or the other way, who the hell cares
-char tmp[4];
-tmp[0] = convThis[1];
-tmp[1] = convThis[0];
-tmp[2] = convThis[3];
-tmp[3] = convThis[2];
-convThis[0] = tmp[0];
-convThis[1] = tmp[1];
-convThis[2] = tmp[2];
-convThis[3] = tmp[3];
+	char tmp[4];
+	tmp[0] = convThis[1];
+	tmp[1] = convThis[0];
+	tmp[2] = convThis[3];
+	tmp[3] = convThis[2];
+	convThis[0] = tmp[0];
+	convThis[1] = tmp[1];
+	convThis[2] = tmp[2];
+	convThis[3] = tmp[3];
 }
 
 int main(){
@@ -142,21 +125,21 @@ int main(){
 		buffR[2] = 0;
 		buffR[3] = 0;
 		switch(bread){
-			case 8:
+		case 8:
 			buffR[3] = buff[7];
-			case 7:
+		case 7:
 			buffR[2] = buff[6];
-			case 6:
+		case 6:
 			buffR[1] = buff[5];
-			case 5:
+		case 5:
 			buffR[0] = buff[4];
-			case 4:
+		case 4:
 			buffL[3] = buff[3];
-			case 3:
+		case 3:
 			buffL[2] = buff[2];
-			case 2:
+		case 2:
 			buffL[1] = buff[1];
-			case 1:
+		case 1:
 			buffL[0] = buff[0];
 		}
 		if(behavior == 1){
@@ -166,13 +149,13 @@ int main(){
 			printf("\n%2x%2x%2x%2x\n%2x%2x%2x%2x\n", buffL[0], buffL[1], buffL[2], buffL[3], buffR[0], buffR[1], buffR[2], buffR[3]);
 		}
 		uint32_t L = (buffL[0] << 24)
-		+ (buffL[1] << 16)
-		+ (buffL[2] << 8)
-		+ (buffL[3]);
+					+ (buffL[1] << 16)
+					+ (buffL[2] << 8)
+					+ (buffL[3]);
 		uint32_t R = (buffR[0] << 24)
-		+ (buffR[1] << 16)
-		+ (buffR[2] << 8)
-		+ (buffR[3]);
+					+ (buffR[1] << 16)
+					+ (buffR[2] << 8)
+					+ (buffR[3]);
 		printf("\n\t%8x\n\t%8x\n", L, R);
 		if(behavior == 1){
 			encrypt(&L, &R);
