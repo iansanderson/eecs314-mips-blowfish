@@ -42,9 +42,9 @@ void encrypt (uint32_t *xl, uint32_t *xr) {
 	Xl = *xl;
 	Xr = *xr;
 
-	for (i = 0; i < 16; ++i) {
+	for (i = 0; i < N; ++i) {
 		Xl = Xl ^ P[i];
-		Xr = f(Xl) ^ Xr;
+		Xr = F(Xl) ^ Xr;
 
 		temp = Xl;
 		Xl = Xr;
@@ -55,8 +55,8 @@ void encrypt (uint32_t *xl, uint32_t *xr) {
 	Xl = Xr;
 	Xr = temp;
 
-	Xr = Xr ^ P[16];
-	Xl = Xl ^ P[16 + 1];
+	Xr = Xr ^ P[N];
+	Xl = Xl ^ P[N + 1];
 
 	*xl = Xl;
 	*xr = Xr;
@@ -71,9 +71,9 @@ void decrypt (uint32_t *xl, uint32_t *xr) {
 	Xl = *xl;
 	Xr = *xr;
 
-	for (i = 16 + 1; i > 1; --i) {
+	for (i = N + 1; i > 1; --i) {
 		Xl = Xl ^ P[i];
-		Xr = f(Xl) ^ Xr;
+		Xr = F(Xl) ^ Xr;
 
 	   /* Exchange Xl and Xr */
 		temp = Xl;
