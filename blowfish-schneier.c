@@ -1,8 +1,7 @@
-#ifdef little_endian
-	/* Eg: Intel */
-   #include <dos.h>
-   #include <graphics.h>
-   #include <io.h>
+#ifdef little_endian	/* Eg: Intel */
+	#include <dos.h>
+	#include <graphics.h>
+	#include <io.h>
 #endif
 
 #include <math.h>
@@ -10,32 +9,32 @@
 #include <stdlib.h>
 #include <time.h>
 
-	/* Eg: Intel */
-   #include <alloc.h>
+#ifdef little_endian	/* Eg: Intel */
+	#include <alloc.h>
 #endif
 
 #include <ctype.h>
 
-	/* Eg: Intel */
-   #include <dir.h>
-   #include <bios.h>
+#ifdef little_endian	/* Eg: Intel */
+	#include <dir.h>
+	#include <bios.h>
 #endif
 
 #ifdef big_endian
-   #include <Types.h>
+	#include <Types.h>
 #endif
 
 #include "Blowfish.h"
 
-#define N               16
-#define noErr            0
-#define DATAERROR         -1
-#define KEYBYTES         8
-#define subkeyfilename   "Blowfish.dat"
+#define N					16
+#define noErr				0
+#define DATAERROR			-1
+#define KEYBYTES			8
+#define subkeyfilename	"Blowfish.dat"
 
 unsigned long P[N + 2];
 unsigned long S[4][256];
-FILE*         SubkeyFile;
+FILE*			SubkeyFile;
 
 short opensubkeyfile(void) /* read only */{
 	short error;
@@ -75,7 +74,7 @@ void Blowfish_encipher(unsigned long *xl, unsigned long *xr){
 	unsigned long  Xl;
 	unsigned long  Xr;
 	unsigned long  temp;
-	short          i;
+	short			 i;
 
 	Xl = *xl;
 	Xr = *xr;
@@ -104,7 +103,7 @@ void Blowfish_decipher(unsigned long *xl, unsigned long *xr){
 	unsigned long  Xl;
 	unsigned long  Xr;
 	unsigned long  temp;
-	short          i;
+	short			 i;
 
 	Xl = *xl;
 	Xr = *xr;
@@ -132,11 +131,11 @@ void Blowfish_decipher(unsigned long *xl, unsigned long *xr){
 }
 
 short InitializeBlowfish(char key[], short keybytes){
-	short          i;
-	short          j;
-	short          k;
-	short          error;
-	short          numread;
+	short			 i;
+	short			 j;
+	short			 k;
+	short			 error;
+	short			 numread;
 	unsigned long  data;
 	unsigned long  datal;
 	unsigned long  datar;
@@ -146,10 +145,13 @@ short InitializeBlowfish(char key[], short keybytes){
 	if (error == noErr) {
 		for (i = 0; i < N + 2; ++i) {
 			numread = fread(&data, 4, 1, SubkeyFile);
+	#ifdef little_endian	/* Eg: Intel	We want to process things in byte	*/
+							/* order, not as rearranged in a longword			 */
 			data = ((data & 0xFF000000) >> 24) |
 			((data & 0x00FF0000) >>  8) |
 			((data & 0x0000FF00) <<  8) |
 			((data & 0x000000FF) << 24);
+	#endif
 
 			if (numread != 1) {
 				return DATAERROR;
@@ -161,10 +163,14 @@ short InitializeBlowfish(char key[], short keybytes){
 		for (i = 0; i < 4; ++i) {
 			for (j = 0; j < 256; ++j) {
 				numread = fread(&data, 4, 1, SubkeyFile);
+
+	#ifdef little_endian		/* Eg: Intel	We want to process things in byte	*/
+							/* order, not as rearranged in a longword			 */
 				data = ((data & 0xFF000000) >> 24) |
 				((data & 0x00FF0000) >>  8) |
 				((data & 0x0000FF00) <<  8) |
 				((data & 0x000000FF) << 24);
+	#endif
 
 				if (numread != 1) {
 					return DATAERROR;
