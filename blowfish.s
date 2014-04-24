@@ -95,8 +95,20 @@ mltest:	add $t0, $t0, $t1
 		li $t0, 1				#load 1 into t0 for behavior checking
 		beq $s0, $t0, mlen		#go to where we encrypt if behavior is 1
 		jal decrypt				#otherwise, decrypt
+		add $a0, $zero, $a2		#load a2 into a0 for badc conversion
+		jal badc				#convert to badc
+		add $a2, $zero, $a0		#copy it back now that it's converted
+		add $a0, $zero, $a3		#same for a3
+		jal badc
+		add $a3, $zero, $a0
 		j mlrest				#and jump to the rest of the main loop
-mlen:	jal encrypt				#encrypt
+mlen:	add $a0, $zero, $a2		#load a2 into a0 for badc conversion
+		jal badc				#convert to badc
+		add $a2, $zero, $a0		#copy it back now that it's converted
+		add $a0, $zero, $a3		#same for a3
+		jal badc
+		add $a3, $zero, $a0
+		jal encrypt				#encrypt
 mlrest:	li $t0, 0				#load 0 into t0 to serve as an offset for storing "L"
 		sw $v0, buffer($t0)		#store "L" back into the first half of the buffer
 		li $t0, 4				#load 4 into t0 to serve as an offset for storing "R"
@@ -121,6 +133,21 @@ endml:
 	add $a0, $zero, $s6		#copy the output file descriptor into a0 to close it
 	syscall					#close the file
 	j finish				#we're done here
+
+badc:						#takes a0 as "convThis"
+	addu $t8, $a0, 4		#for convthis[1]
+	lb $t4, ($t8)			#tmp[0] = convthis[1]
+	addu $t9, $a0, 0		#for convthis[0]
+	lb $t5, ($t9)			#tmp[1] = convthis[0]
+	sb $t5, ($t8)			#convthis[0] = tmp[1]
+	sb $t4, ($t9)			#convthis[1] = tmp[0]
+	addu $t8, $a0, 12		#for convthis[3]
+	lb $t6, ($t8)			#tmp[2] = convthis[3]
+	addu $t9, $a0, 8		#for convthis[2]
+	lb $t7, ($t9)			#tmp[3] = convthis[2]
+	sb $t7, ($t8)			#convthis[2] = tmp[3]
+	sb $t6, ($t9)			#convthis[3] = tmp[2]
+	jr $ra
 
 f:							#takes a0 as "x"
 	srl $t6, $a0, 24		#shift a0 right 24 bits, store in t6
