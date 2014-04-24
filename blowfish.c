@@ -142,6 +142,7 @@ int main(){
 		case 1:
 			buffL[0] = buff[0];
 		}
+		printf("\n%x%x%x%x\n%x%x%x%x\n", buffL[0], buffL[1], buffL[2], buffL[3], buffR[0], buffR[1], buffR[2], buffR[3]);
 		convertBADC(buffL);
 		convertBADC(buffR);
 		uint32_t L = (buffL[0] << 24)
