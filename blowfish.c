@@ -115,6 +115,7 @@ int main(){
 	char *buffR = malloc(32);
 	int bread = fread(buff, 1, 8, ifile);
 	while(bread > 0){
+		printf("%s\n", buff);
 		buffL[0] = 0;
 		buffL[1] = 0;
 		buffL[2] = 0;
