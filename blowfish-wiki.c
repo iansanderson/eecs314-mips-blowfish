@@ -115,7 +115,7 @@ int main(){
 	char *buffR = malloc(32);
 	int bread = fread(buff, 1, 8, ifile);
 	while(bread > 0){
-		printf("%s\n", buff);
+		printf("%s:%d\n", buff, bread);
 		buffL[0] = 0;
 		buffL[1] = 0;
 		buffL[2] = 0;
@@ -142,9 +142,12 @@ int main(){
 		case 1:
 			buffL[0] = buff[0];
 		}
-		printf("\n%x%x%x%x\n%x%x%x%x\n", buffL[0], buffL[1], buffL[2], buffL[3], buffR[0], buffR[1], buffR[2], buffR[3]);
-		convertBADC(buffL);
-		convertBADC(buffR);
+		if(behavior == 1){
+			printf("\n%2x%2x%2x%2x\n%2x%2x%2x%2x\n", buffL[0], buffL[1], buffL[2], buffL[3], buffR[0], buffR[1], buffR[2], buffR[3]);
+			convertBADC(buffL);
+			convertBADC(buffR);
+			printf("\n%2x%2x%2x%2x\n%2x%2x%2x%2x\n", buffL[0], buffL[1], buffL[2], buffL[3], buffR[0], buffR[1], buffR[2], buffR[3]);
+		}
 		uint32_t L = (buffL[0] << 24)
 					+ (buffL[1] << 16)
 					+ (buffL[2] << 8)
@@ -168,8 +171,10 @@ int main(){
 		buffR[1] = (R >> 16) & 0xff;
 		buffR[2] = (R >> 8) & 0xff;
 		buffR[3] = R & 0xff;
-		convertBADC(buffL);
-		convertBADC(buffR);
+		if(behavior == 2){
+			convertBADC(buffL);
+			convertBADC(buffR);
+		}
 		buff[0] = buffL[0];
 		buff[1] = buffL[1];
 		buff[2] = buffL[2];
