@@ -89,17 +89,16 @@ swapendian:					#takes a0 as swapthis
 	sw $t1, 4($t6)
 	sw $t2, 8($t6)
 	sw $t3, 12($t6)
-	sw $t4, 16($t6)
+	sw $a0, 16($t6)
 	#done storing
-	la $t4, $a0				#t4 is the address of a0
-	lb $t0, 12($t4)			#tmp[0] = swapthis[3]
-	lb $t1, 8($t4)			#tmp[1] = swapthis[2]
-	lb $t2, 4($t4)			#tmp[2] = swapthis[1]
-	lb $t3, ($t4)			#tmp[3] = swapthis[0]
-	sb $t0, ($t4)			#swapthis[0] = tmp[0]
-	sb $t1, 4($t4)			#swapthis[1] = tmp[1]
-	sb $t2, 8($t4)			#swapthis[2] = tmp[2]
-	sb $t3, 12($t4)			#swapthis[3] = tmp[3]
+	lb $t0, 19($t6)			#tmp[0] = swapthis[3]
+	lb $t1, 18($t6)			#tmp[1] = swapthis[2]
+	lb $t2, 17($t6)			#tmp[2] = swapthis[1]
+	lb $t3, 16($t6)			#tmp[3] = swapthis[0]
+	sb $t0, 16($t6)			#swapthis[0] = tmp[0]
+	sb $t1, 17($t6)			#swapthis[1] = tmp[1]
+	sb $t2, 18($t6)			#swapthis[2] = tmp[2]
+	sb $t3, 19($t6)			#swapthis[3] = tmp[3]
 	#begin restoring
 	lw $t0, ($t6)
 	lw $t1, 4($t6)
@@ -167,17 +166,17 @@ denloop:
 		beq $t0, $t1, enddenloop	#kill the loop if we hit the end
 		sll $t2, $t0, 1			#shift loop variable left 1(mult by 2) for addressing the plain/ciphertext
 		add $t2, $t2, $a0		#for addressing
-		lw $a2, ($t2)		#load the "i*2"th item
-		addi $t2, $t2, 1		#add 1 for accessing next item
-		lw $a3, ($t2)		#load the "i*2+1"th item
+		lw $a2, ($t2)			#load the "i*2"th item
+		addi $t2, $t2, 4		#add 1 for accessing next item
+		lw $a3, ($t2)			#load the "i*2+1"th item
 		li $t3, 1				#for behavior checking
 		beq $t3, $s0, denlen	#go to where we encrypt if that's what we're supposed to do
 		jal decryptblock		#otherwise, decrypt
 		j denlr					#and skip the encryption because no
 denlen:	jal encryptblock
-denlr:	sw $a3, ($t2)		#store the en/decrypted a3 back in the "i*2+1"th place
-		addi $t2, $t2, -1		#subtract 1 for accessing the previous item
-		sw $a2, ($t2)		#store the en/decrypted a2 back in the "i*2"th place
+denlr:	sw $a3, ($t2)			#store the en/decrypted a3 back in the "i*2+1"th place
+		addi $t2, $t2, -4		#subtract 1 for accessing the previous item
+		sw $a2, ($t2)			#store the en/decrypted a2 back in the "i*2"th place
 		addi $t0, $t0, 1		#increment loop variable
 		j denloop				#keep looping
 enddenloop:
