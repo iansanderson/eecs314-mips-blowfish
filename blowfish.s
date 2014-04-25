@@ -81,7 +81,7 @@ swapendian:					#takes a0 as swapthis
 	#Comments that better explain what I'm about to do can be found in dencrypt. Sorry.
 	add $t6, $zero, $a0		#saving for the syscall we're about to make
 	li $v0, 9				#for allocating heap space
-	li $a0, 16				#for storing 5 registers in the heap
+	li $a0, 20				#for storing 5 registers in the heap
 	syscall					#allocate dat spaaaace
 	add $a0, $zero, $t6		#putting it back in its place
 	add $t6, $zero, $v0		#for using the address of the storage we just made
@@ -89,15 +89,17 @@ swapendian:					#takes a0 as swapthis
 	sw $t1, 4($t6)
 	sw $t2, 8($t6)
 	sw $t3, 12($t6)
+	sw $t4, 16($t6)
 	#done storing
-	lb $t0, 12($a0)			#tmp[0] = swapthis[3]
-	lb $t1, 8($a0)			#tmp[1] = swapthis[2]
-	lb $t2, 4($a0)			#tmp[2] = swapthis[1]
-	lb $t3, ($a0)			#tmp[3] = swapthis[0]
-	sb $t0, ($a0)			#swapthis[0] = tmp[0]
-	sb $t1, 4($a0)			#swapthis[1] = tmp[1]
-	sb $t2, 8($a0)			#swapthis[2] = tmp[2]
-	sb $t3, 12($a0)			#swapthis[3] = tmp[3]
+	la $t4, $a0				#t4 is the address of a0
+	lb $t0, 12($t4)			#tmp[0] = swapthis[3]
+	lb $t1, 8($t4)			#tmp[1] = swapthis[2]
+	lb $t2, 4($t4)			#tmp[2] = swapthis[1]
+	lb $t3, ($t4)			#tmp[3] = swapthis[0]
+	sb $t0, ($t4)			#swapthis[0] = tmp[0]
+	sb $t1, 4($t4)			#swapthis[1] = tmp[1]
+	sb $t2, 8($t4)			#swapthis[2] = tmp[2]
+	sb $t3, 12($t4)			#swapthis[3] = tmp[3]
 	#begin restoring
 	lw $t0, ($t6)
 	lw $t1, 4($t6)
