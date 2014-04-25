@@ -42,10 +42,10 @@ main:
 	mfhi $t2				#get the remainder and store it in t2
 	subu $t2, $t1, $t2		#since t1 is still 8, this sets t0 to 8 - t0, or the number of bytes to pad with
 	li $t3, 0				#for writing pad
-ploop:	blez $t0, endpl			#padding
+ploop:	blez $t2, endpl			#padding
 		add $t1, $t2, $s3		#add first empty address' offset to address of heap memory used for file
 		sb $t3, ($t1)			#store the pad
-		addi $t0, $t0, -1		#decrement the loop variable
+		addi $t2, $t2, -1		#decrement the loop variable
 		addi $s4, $s4, 1		#also, increment s4 so we know how many bytes to write at the end
 		j ploop					#keep looping
 endpl:
@@ -56,6 +56,7 @@ endpl:
 	li $v0, 4				#set v0 to 4 for string printing
 	syscall					#print our prompt
 	la $a0, ofilebuff		#load the output file name buffer's address into a0
+	jal nameclean			#make sure the output file's name is clean
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall					#read in our output file path
 	add $a0, $zero, $t4		#copy t4(output file location) to a0 for file opening
@@ -136,7 +137,7 @@ dencrypt:					#takes a0 as both the source and destination(we put it where we go
 	#Yes, we understand what we're doing here. Scoping in assembly is the best feature.
 	add $s4, $zero, $a0		#aforementioned backup
 	li $v0, 9				#for syscalling allocation
-	li $a0, 72				#72 = 10*4 + 8*4 + 4 = byte size of all t + (byte size of (all s - 1)) + bite size of ra
+	li $a0, 92				#88 = 10*4 + 8*4 + 4 + 4*4 + 4= byte size of all t + (byte size of (all s - 1)) + bite size of ra + byte size of the 4 temps we want to save in the loop + byte size of a0
 	syscall					#do the allocation
 	add $a0, $zero, $s4		#put the old a0 back in there
 	add $s4, $zero, $v0		#get the location of the heap storage into s4
@@ -164,17 +165,28 @@ dencrypt:					#takes a0 as both the source and destination(we put it where we go
 	sra $t1, $t1, 3			#shift right 3 to divide by 8(size in bytes of a block)
 denloop:
 		beq $t0, $t1, enddenloop	#kill the loop if we hit the end
-		sll $t2, $t0, 1			#shift loop variable left 1(mult by 2) for addressing the plain/ciphertext
-		add $t2, $t2, $a0		#for addressing
+		sll $t2, $t0, 3			#shift loop variable left 3(mult by 2 and then also 4) for addressing the plain/ciphertext
+		addu $t2, $t2, $a0		#for addressing
 		lw $a2, ($t2)			#load the "i*2"th item
 		addi $t2, $t2, 4		#add 1 for accessing next item
 		lw $a3, ($t2)			#load the "i*2+1"th item
 		li $t3, 1				#for behavior checking
+		sw $t0, 72($s4)			#prevent data corruption
+		sw $t1, 76($s4)			#prevent data corruption
+		sw $t2, 80($s4)			#prevent data corruption
+		sw $t3, 84($s4)			#prevent data corruption
+		sw $a0, 88($s4)			#prevent moar data corruption
 		beq $t3, $s0, denlen	#go to where we encrypt if that's what we're supposed to do
 		jal decryptblock		#otherwise, decrypt
 		j denlr					#and skip the encryption because no
 denlen:	jal encryptblock
-denlr:	sw $a3, ($t2)			#store the en/decrypted a3 back in the "i*2+1"th place
+denlr:
+		lw $t0, 72($s4)			#bring back values
+		lw $t1, 76($s4)			#bring back values
+		lw $t2, 80($s4)			#bring back values
+		lw $t3, 84($s4)			#bring back values
+		lw $a0, 88($s4)			#bring back moar values
+		sw $a3, ($t2)			#store the en/decrypted a3 back in the "i*2+1"th place
 		addi $t2, $t2, -4		#subtract 1 for accessing the previous item
 		sw $a2, ($t2)			#store the en/decrypted a2 back in the "i*2"th place
 		addi $t0, $t0, 1		#increment loop variable
@@ -249,13 +261,11 @@ dbloop:	beq $t0, $t1, enddbl	#jump to the end of the loop if we've finished
 		addu $a0, $zero, $a2		#copy a2 into a0 for calling f
 		jal f					#call f
 		xor $a3, $a3, $v1		#xor a3 with the result of f and store in a3
-		addiu $t6, $zero, 4		#set t6 to an unsigned 4 for subtraction
-		subu $t4, $t4, $t6		#subtract t6 from t4 and store in t4(getting back to the "i"th element, rather than "i+1"th)
+		addi $t4, $t4, -4		#subtract 4 from t4
 		lw $t5, ($t4)			#load the t4th element of the P array into t5
 		xor $a3, $a3, $t5		#xor a3 with t5 and store in a3
 		addu $a0, $zero, $a3		#copy a3 into a0 for calling f
 		jal f					#call f
-		addiu $t6, $zero, 2		#set t6 to 2 for
 		addi $t0, $t0, -2		#decrement t0 by 2 for looping(invariant)
 		j dbloop					#continue the loop
 enddbl:
