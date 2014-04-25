@@ -1,5 +1,5 @@
 main:
-		la $a0, behaviorprompt	#load our behavior prompt into a0
+	la $a0, behaviorprompt	#load our behavior prompt into a0
 	li $v0, 4				#set v0 to 4 for string printing
 	syscall					#print our prompt
 	li $v0, 5				#set v0 to 5 for integer reading
@@ -38,16 +38,35 @@ main:
 	li $a1, 12				#load 12 into a1 to represent the size of the key
 	jal keysched			#call key_schedule
 	#first read before loop so that pad checking on end is easier for decrypt
-	li $a0, 0x01000000		#allocating 16MiB for file. let's hope it's not bigger.
+	li $a0, 0x00010000		#allocating 16KiB for file. let's hope it's not bigger.
 	li $v0, 9				#for heap allocation
 	syscall					#allocate it
 	add $s3, $zero, $v0		#copy the heap address into a safe place
 	li $v0, 14				#set v0 to 14 for file reading
 	add $a0, $zero, $s5		#load input file descriptor into a0 for reading
 	add $a1, $zero, $s3		#load buffer's address into a1 for reading
-	li $a2, 0x01000000		#load 0x01000000 into a2 to cap the bytes read to the buffer size
+	li $a2, 0x00010000		#load 0x10000 into a2 to cap the bytes read to the buffer size
 	syscall					#read from the file
-
+	add $t0, $zero, $v0		#store the number of bytes read
+	li $t1, 8				#load 8 into t1 for division
+	divu $t0, $t1			#divide
+	mfhi $t2				#get the remainder and store it in t2
+	subu $t2, $t1, $t2		#since t1 is still 8, this sets t0 to 8 - t0, or the number of bytes to pad with
+	li $t3, 0				#for writing pad
+ploop:	blez $t0, endpl			#padding
+		add $t1, $t2, $s3		#add first empty address' offset to address of heap memory used for file
+		sb $t3, ($t1)			#store the pad
+		addi $t0, $t0, -1		#decrement the loop variable
+		j ploop					#keep looping
+endpl:
+	li $t0, 1				#for checking if behavior is encrypt
+	beq $t0, $s0, mainen	#go to where we encrypt if it matches
+	jal decrypt				#otherwise, decrypt
+	j mainr					#skip the encryption cause no
+mainen:						#encrypt
+	jal encrypt
+mainr:						#the rest of main
+	#write to file
 	li $v0, 16 				#set v0 to 16 for file closing
 	add $a0, $zero, $s5		#copy the input file descriptor into a0 to close it
 	syscall					#close the file
