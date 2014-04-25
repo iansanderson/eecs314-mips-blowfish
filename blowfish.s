@@ -78,14 +78,31 @@ endpl:
 	j finish				#We're done here.
 
 swapendian:					#takes a0 as swapthis
-	lb $t6, 12($a0)			#tmp[0] = swapthis[3]
-	lb $t7, 8($a0)			#tmp[1] = swapthis[2]
-	lb $t8, 4($a0)			#tmp[2] = swapthis[1]
-	lb $t9, ($a0)			#tmp[3] = swapthis[0]
-	sb $t6, ($a0)			#swapthis[0] = tmp[0]
-	sb $t7, 4($a0)			#swapthis[1] = tmp[1]
-	sb $t8, 8($a0)			#swapthis[2] = tmp[2]
-	sb $t9, 12($a0)			#swapthis[3] = tmp[3]
+	#Comments that better explain what I'm about to do can be found in dencrypt. Sorry.
+	add $t6, $zero, $a0		#saving for the syscall we're about to make
+	li $v0, 9				#for allocating heap space
+	li $a0, 16				#for storing 5 registers in the heap
+	syscall					#allocate dat spaaaace
+	add $a0, $zero, $t6		#putting it back in its place
+	add $t6, $zero, $v0		#for using the address of the storage we just made
+	sw $t0, ($t6)
+	sw $t1, 4($t6)
+	sw $t2, 8($t6)
+	sw $t3, 12($t6)
+	#done storing
+	lb $t0, 12($a0)			#tmp[0] = swapthis[3]
+	lb $t1, 8($a0)			#tmp[1] = swapthis[2]
+	lb $t2, 4($a0)			#tmp[2] = swapthis[1]
+	lb $t3, ($a0)			#tmp[3] = swapthis[0]
+	sb $t0, ($a0)			#swapthis[0] = tmp[0]
+	sb $t1, 4($a0)			#swapthis[1] = tmp[1]
+	sb $t2, 8($a0)			#swapthis[2] = tmp[2]
+	sb $t3, 12($a0)			#swapthis[3] = tmp[3]
+	#begin restoring
+	lw $t0, ($t6)
+	lw $t1, 4($t6)
+	lw $t2, 8($t6)
+	lw $t3, 12($t6)
 	jr $ra					#jump back to where we came from
 
 f:							#takes a0 as "x"
@@ -115,6 +132,7 @@ f:							#takes a0 as "x"
 dencrypt:					#takes a0 as both the source and destination(we put it where we got it), and takes a1 as the length in bytes of the data(after padding)
 	#For sake of ease, we're going to store the values of all t and s registers, other than s4, and ra in the heap. s4 will be used to remember where in the heap that storage is.
 	#First though, it'll be used to backup a0 for allocating said memory.
+	#Yes, we understand what we're doing here. Scoping in assembly is the best feature.
 	add $s4, $zero, $a0		#aforementioned backup
 	li $v0, 9				#for syscalling allocation
 	li $a0, 72				#72 = 10*4 + 8*4 + 4 = byte size of all t + (byte size of (all s - 1)) + bite size of ra
@@ -146,17 +164,18 @@ dencrypt:					#takes a0 as both the source and destination(we put it where we go
 denloop:
 		beq $t0, $t1, enddenloop	#kill the loop if we hit the end
 		sll $t2, $t0, 1			#shift loop variable left 1(mult by 2) for addressing the plain/ciphertext
-		lw $a2, $a0($t2)		#load the "i*2"th item
+		add $t2, $t2, $a0		#for addressing
+		lw $a2, ($t2)		#load the "i*2"th item
 		addi $t2, $t2, 1		#add 1 for accessing next item
-		lw $a3, $a0($t2)		#load the "i*2+1"th item
+		lw $a3, ($t2)		#load the "i*2+1"th item
 		li $t3, 1				#for behavior checking
 		beq $t3, $s0, denlen	#go to where we encrypt if that's what we're supposed to do
-		jal decrypt				#otherwise, decrypt
+		jal decryptblock		#otherwise, decrypt
 		j denlr					#and skip the encryption because no
-denlen:	jal encrypt
-denlr:	sw $a3, $a0($t2)		#store the en/decrypted a3 back in the "i*2+1"th place
+denlen:	jal encryptblock
+denlr:	sw $a3, ($t2)		#store the en/decrypted a3 back in the "i*2+1"th place
 		addi $t2, $t2, -1		#subtract 1 for accessing the previous item
-		sw $a2, $a0($t2)		#store the en/decrypted a2 back in the "i*2"th place
+		sw $a2, ($t2)		#store the en/decrypted a2 back in the "i*2"th place
 		addi $t0, $t0, 1		#increment loop variable
 		j denloop				#keep looping
 enddenloop:
@@ -185,7 +204,7 @@ encryptblock:				#takes a2 as "L" and a3 as "R".
 	addu $s2, $zero, $ra	#copy ra into s2 so we can jump to other functions while here and still get back correctly
 	li $t0, 0				#initialize t0 to 0 for looping(loop variable)
 	li $t1, 16				#initialize t1 to 16 for looping(end condition)
-ebloop:	beq $t0, $t1, endel		#jump to the end of the loop if we've finished
+ebloop:	beq $t0, $t1, endebl	#jump to the end of the loop if we've finished
 		la $t2, plist			#load the P array's address into t2
 		sll $t3, $t0, 2			#shift t0 left twice and store in t3, for addressing
 		addu $t4, $t2, $t3		#sum t2 and t3 into t4 for accessing the P array
@@ -201,7 +220,7 @@ ebloop:	beq $t0, $t1, endel		#jump to the end of the loop if we've finished
 		jal f					#call f
 		xor $a2, $a2, $v1		#xor a2 with the result of f and store in a2
 		addi $t0, $t0, 2		#increment t0 by 2 for looping(invariant)
-		j eloop					#continue the loop
+		j ebloop					#continue the loop
 endebl:
 	la $t0, plist			#load the P array's address into t0
 	addiu $t0, $t0, 64		#add 64 to it for the address of the 16th element
@@ -219,7 +238,7 @@ decryptblock:				#takes a2 as "L" and a3 as "R".
 	addu $s2, $zero, $ra	#copy ra into s2 so we can jump to other functions while here and still get back correctly
 	li $t0, 16				#initialize t0 to 16 for looping(loop variable)
 	li $t1, 0				#initialize t1 to 0 for looping(end condition)
-dbloop:	beq $t0, $t1, enddl		#jump to the end of the loop if we've finished
+dbloop:	beq $t0, $t1, enddbl	#jump to the end of the loop if we've finished
 		la $t2, plist			#load the P array's address into t2
 		sll $t3, $t0, 2			#shift t0 left twice and store in t3, for addressing
 		addu $t4, $t2, $t3		#sum t2 and t3 into t4 for accessing the P array
@@ -237,7 +256,7 @@ dbloop:	beq $t0, $t1, enddl		#jump to the end of the loop if we've finished
 		jal f					#call f
 		addiu $t6, $zero, 2		#set t6 to 2 for
 		addi $t0, $t0, -2		#decrement t0 by 2 for looping(invariant)
-		j dloop					#continue the loop
+		j dbloop					#continue the loop
 enddbl:
 	la $t0, plist			#load the P array's address into t0
 	lw $t1, ($t0)			#load that element into t1
