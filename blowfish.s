@@ -6,76 +6,77 @@ main:
 	syscall					#read input into v0
 	jal testinput			#test our input
 	add $s0, $zero, $v0		#copy v0 into s0 to save our behavior choice
-	la $a0, ifileprompt		#load our input file prompt into a0
-	li $a1, 200				#set max length of input file path
-	li $v0, 4				#set v0 to 4 for string printing
-	syscall					#print our prompt
-	la $a0, ifilebuff		#load the input file name buffer's address into a0
-	li $v0, 8				#set v0 to 8 for string reading
-	syscall					#read in our file path
-	la $t3, ifilebuff		#store our input file location in t3
-	la $t4, ofilebuff		#store our output file location in t4
-	jal nameclean			#clean the names of their newlines
-	add $a0, $zero, $t3		#copy t3(input file location) to a0 for file opening
-	li $a1, 0				#set a1 to 0 for read
-	li $a2, 0				#mode doesn't make sense yet, so i'm using 0
-	li $v0, 13				#set v0 to 13 for file opening
-	syscall					#open the file and put its descriptor in v0
-	add $s5, $zero, $v0		#store the input file descriptor in s5
-	la $a0, pockey			#load the proof of concept key's location into a0
-	li $a1, 1				#load 1 into a1 to represent the size of the key
-	jal keysched			#call key_schedule
-	#first read before loop so that pad checking on end is easier for decrypt
-	li $a0, 0x00010000		#allocating 16KiB for file. let's hope it's not bigger.
-	li $v0, 9				#for heap allocation
-	syscall					#allocate it
-	add $s3, $zero, $v0		#copy the heap address into a safe place
-	li $v0, 14				#set v0 to 14 for file reading
-	add $a0, $zero, $s5		#load input file descriptor into a0 for reading
-	add $a1, $zero, $s3		#load buffer's address into a1 for reading
-	li $a2, 0x00010000		#load 0x10000 into a2 to cap the bytes read to the buffer size
-	syscall					#read from the file
-	add $s4, $zero, $v0		#store the number of bytes read
-	add $t0, $zero, $s4		#copy into t0 for manipulation
-	li $t1, 8				#load 8 into t1 for division
-	divu $t0, $t1			#divide
-	mfhi $t2				#get the remainder and store it in t2
-	subu $t2, $t1, $t2		#since t1 is still 8, this sets t0 to 8 - t0, or the number of bytes to pad with
-	li $t3, 0				#for writing pad
-ploop:	blez $t2, endpl			#padding
-		add $t1, $t2, $s3		#add first empty address' offset to address of heap memory used for file
-		sb $t3, ($t1)			#store the pad
-		addi $t2, $t2, -1		#decrement the loop variable
-		addi $s4, $s4, 1		#also, increment s4 so we know how many bytes to write at the end
-		j ploop					#keep looping
-endpl:
-	add $a0, $zero, $s3		#for passing to dencrypt
-	add $a1, $zero, $s4		#for passing to dencrypt
-	jal dencrypt			#go to the en/decrypting function
-	add $s4, $zero, $a1		#copy value back due to editing of s4 in dencrypt
-	la $a0, ofileprompt		#load our output file prompt into a0
-	li $v0, 4				#set v0 to 4 for string printing
-	syscall					#print our prompt
-	la $a0, ofilebuff		#load the output file name buffer's address into a0
-	li $v0, 8				#set v0 to 8 for string reading
-	syscall					#read in our output file path
-	jal nameclean			#make sure the output file's name is clean
-	li $a1, 1				#set a1 to 1 for write with create
-	li $a2, 0				#mode doesn't make sense yet, so i'm using 0
-	li $v0, 13				#set v0 to 13 for file opening
-	syscall					#open the file and put its descriptor in v0
-	add $s6, $zero, $v0		#store the output file descriptor in s6
-	li $v0, 15				#for file writing
-	add $a0, $zero, $s6		#load output file descriptor
-	add $a1, $zero, $s3		#load plain/ciphertext location
-	add $a2, $zero, $s4		#load number of bytes to write
-	syscall					#write to file
-	li $v0, 16 				#set v0 to 16 for file closing
-	add $a0, $zero, $s5		#copy the input file descriptor into a0 to close it
-	syscall					#close the file
-	li $v0, 16				#set it again because it was changed by the syscall
-	add $a0, $zero, $s6		#copy the output file descriptor into a0 to close it
-	syscall					#close the file
+#Commenting out the file version to try just reading from console
+	#la $a0, ifileprompt		#load our input file prompt into a0
+	#li $a1, 200				#set max length of input file path
+	#li $v0, 4				#set v0 to 4 for string printing
+	#syscall					#print our prompt
+	#la $a0, ifilebuff		#load the input file name buffer's address into a0
+	#li $v0, 8				#set v0 to 8 for string reading
+	#syscall					#read in our file path
+	#la $t3, ifilebuff		#store our input file location in t3
+	#la $t4, ofilebuff		#store our output file location in t4
+	#jal nameclean			#clean the names of their newlines
+	#add $a0, $zero, $t3		#copy t3(input file location) to a0 for file opening
+	#li $a1, 0				#set a1 to 0 for read
+	#li $a2, 0				#mode doesn't make sense yet, so i'm using 0
+	#li $v0, 13				#set v0 to 13 for file opening
+	#syscall					#open the file and put its descriptor in v0
+	#add $s5, $zero, $v0		#store the input file descriptor in s5
+	#la $a0, pockey			#load the proof of concept key's location into a0
+	#li $a1, 1				#load 1 into a1 to represent the size of the key
+	#jal keysched			#call key_schedule
+	##first read before loop so that pad checking on end is easier for decrypt
+	#li $a0, 0x00010000		#allocating 16KiB for file. let's hope it's not bigger.
+	#li $v0, 9				#for heap allocation
+	#syscall					#allocate it
+	#add $s3, $zero, $v0		#copy the heap address into a safe place
+	#li $v0, 14				#set v0 to 14 for file reading
+	#add $a0, $zero, $s5		#load input file descriptor into a0 for reading
+	#add $a1, $zero, $s3		#load buffer's address into a1 for reading
+	#li $a2, 0x00010000		#load 0x10000 into a2 to cap the bytes read to the buffer size
+	#syscall					#read from the file
+	#add $s4, $zero, $v0		#store the number of bytes read
+	#add $t0, $zero, $s4		#copy into t0 for manipulation
+	#li $t1, 8				#load 8 into t1 for division
+	#divu $t0, $t1			#divide
+	#mfhi $t2				#get the remainder and store it in t2
+	#subu $t2, $t1, $t2		#since t1 is still 8, this sets t0 to 8 - t0, or the number of bytes to pad with
+	#li $t3, 0				#for writing pad
+#ploop:	blez $t2, endpl			#padding
+		#add $t1, $t2, $s3		#add first empty address' offset to address of heap memory used for file
+		#sb $t3, ($t1)			#store the pad
+		#addi $t2, $t2, -1		#decrement the loop variable
+		#addi $s4, $s4, 1		#also, increment s4 so we know how many bytes to write at the end
+		#j ploop					#keep looping
+#endpl:
+	#add $a0, $zero, $s3		#for passing to dencrypt
+	#add $a1, $zero, $s4		#for passing to dencrypt
+	#jal dencrypt			#go to the en/decrypting function
+	#add $s4, $zero, $a1		#copy value back due to editing of s4 in dencrypt
+	#la $a0, ofileprompt		#load our output file prompt into a0
+	#li $v0, 4				#set v0 to 4 for string printing
+	#syscall					#print our prompt
+	#la $a0, ofilebuff		#load the output file name buffer's address into a0
+	#li $v0, 8				#set v0 to 8 for string reading
+	#syscall					#read in our output file path
+	#jal nameclean			#make sure the output file's name is clean
+	#li $a1, 1				#set a1 to 1 for write with create
+	#li $a2, 0				#mode doesn't make sense yet, so i'm using 0
+	#li $v0, 13				#set v0 to 13 for file opening
+	#syscall					#open the file and put its descriptor in v0
+	#add $s6, $zero, $v0		#store the output file descriptor in s6
+	#li $v0, 15				#for file writing
+	#add $a0, $zero, $s6		#load output file descriptor
+	#add $a1, $zero, $s3		#load plain/ciphertext location
+	#add $a2, $zero, $s4		#load number of bytes to write
+	#syscall					#write to file
+	#li $v0, 16 				#set v0 to 16 for file closing
+	#add $a0, $zero, $s5		#copy the input file descriptor into a0 to close it
+	#syscall					#close the file
+	#li $v0, 16				#set it again because it was changed by the syscall
+	#add $a0, $zero, $s6		#copy the output file descriptor into a0 to close it
+	#syscall					#close the file
 	j finish				#We're done here.
 
 swapendian:					#takes a0 as swapthis
@@ -444,8 +445,11 @@ slistfour: .word 0x3a39ce37, 0xd3faf5cf, 0xabc27737, 0x5ac52d1b, 0x5cb0679e, 0x4
 pockey: .word 0xabcdef01 #1 elements(32 bits), Proof Of Concept key
 behaviorprompt: .asciiz "Are we encrypting(1) or decrypting(2)? "
 invalidinput: .asciiz "Invalid input. Exiting. \n"
-ifileprompt: .asciiz "Please enter the full path of the input file(max 200 characters): "
-ofileprompt: .asciiz "Please enter the full path to where you wish the result to appear(max 200 characters): "
+#ifileprompt: .asciiz "Please enter the full path of the input file(max 200 characters): "
+#ofileprompt: .asciiz "Please enter the full path to where you wish the result to appear(max 200 characters): "
+inputprompt: .asciiz "Please enter the text you wish to encrypt:\n"
+eoutputtext: .asciiz "Here is your encrypted output:\n"
+doutputtext: .asciiz "And here that is, decrypted:\n"
 donemsg: .asciiz "Complete! \n"
 mainloopbegin: .asciiz "main loop about to begin \n"
 keyscheddone: .asciiz "keyschedule done\n"
