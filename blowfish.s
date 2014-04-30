@@ -12,7 +12,21 @@ main:
 	la $a0, inputbuff		#load our input buffer's address into a0
 	li $v0, 8				#set v0 to 8 for string reading
 	syscall
-
+	la $a0, pockey			#load the key's address into a0 for keyschedule
+	li $a1, 1				#load the key's length, 1, into a1 for keyschedule
+	jal keysched			#call keyschedule.
+	li $t2, 65536			#set t2 to the length of the buffer because for now we don't care about output size efficiency.
+	la $a0, inputbuff		#load the input buffer's location for dencrypt
+	add $a1, $zero, $t2		#load the length of the buffer's contents into a1
+	jal dencrypt
+	la $a0, eoutputtext		#load the message about encrypted text
+	li $v0, 4				#for string printing
+	syscall
+	la $a0, inputbuff		#load the now-encrypted text
+	syscall
+	jal dencrypt
+	la $a0, doutputtext		#load the message about decrypted text
+	syscall
 	j finish				#We're done here.
 
 swapendian:					#takes a0 as swapthis
