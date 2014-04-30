@@ -10,6 +10,7 @@
 #include <cstring>
 #include <iostream>
 #include <algorithm>
+#include <cstdio>
 using namespace std;
 
 #if !defined(__LITTLE_ENDIAN__) and !defined(__BIG_ENDIAN__)
@@ -418,10 +419,13 @@ uint32_t Blowfish::Feistel(uint32_t value) const
 
 int main(int argc, const char * argv[])
 {
-    char key[] = "The quick brown fox jumps over the lazy dog.";
+    char key[] = {0xab, 0xcd, 0xef, 0x01};
 
     Blowfish blowfish;
     blowfish.SetKey(key);
+
+    uint32_t testFeistel = blowfish.Feistel(0x00000000);
+    printf("tF(f(0)):%8x\ns[0][0]:%8x\ts[1][0]:%8x\ns[2][0]:%8x\ts[3][0]:%8x\n", testFeistel, blowfish.sbox_[0][0], blowfish.sbox_[1][0], blowfish.sbox_[2][0], blowfish.sbox_[3][0]);
 
     string text = "Hello, this is a test.";
     string encrypted, decrypted;

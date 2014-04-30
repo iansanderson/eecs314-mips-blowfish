@@ -9,7 +9,7 @@ main:
 	syscall
 	la $a0, pockey			#load the key's address into a0 for keyschedule
 	li $a1, 1				#load the key's length, 1, into a1 for keyschedule
-	jal keysched			#call keyschedule.
+#	jal keysched			#call keyschedule.
 	li $t2, 4096			#set t2 to the length of the buffer because for now we don't care about output size efficiency.
 	la $a0, inputbuff		#load the input buffer's location for dencrypt
 	add $a1, $zero, $t2		#load the length of the buffer's contents into a1
@@ -19,12 +19,17 @@ main:
 	syscall
 	la $a0, inputbuff		#load the now-encrypted text
 	syscall
+	la $a0, nl				#load the newline string
+	syscall
+	la $a0, inputbuff		#load the text back again for decryption
 	li $s0, 2				#set behavior to decrypt
 	jal dencrypt
 	la $a0, doutputtext		#load the message about decrypted text
 	li $v0, 4
 	syscall
 	la $a0, inputbuff		#load the now-decrypted text
+	syscall
+	la $a0, nl				#load the newline string
 	syscall
 	j finish				#We're done here.
 
@@ -382,3 +387,4 @@ doutputtext: .asciiz "And here that is, decrypted:\n"
 donemsg: .asciiz "Complete! \n"
 mainloopbegin: .asciiz "main loop about to begin \n"
 keyscheddone: .asciiz "keyschedule done\n"
+nl: .asciiz "\n"
