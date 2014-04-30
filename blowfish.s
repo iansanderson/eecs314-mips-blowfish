@@ -348,20 +348,6 @@ invalid:
 	li $v0, 17				#set v0 to 17 for exiting with a code
 	syscall					#exit with code a0
 
-nameclean:
-    li $t0, 0       		#loop counter
-    li $t1, 21 				#loop end
-clean: 	beq $t0, $t1, L5
-    	lb $t2, ifilebuff($t0)		#load this iteration's byte(ifile)
-    	bne $t2, 0x0a, nclp2		#check if it's ASCII 10
-    	sb $zero, ifilebuff($t0)	#if it is, substitute it with $zero
-nclp2:	lb $t2, ofilebuff($t0)		#load this iteration's byte(ofile)
-		bne $t2, 0x0a, nclp3		#check if it's ASCII 10
-		sb $zero, ofilebuff($t0)	#if it is, substitute it with $zero
-nclp3: 	addi $t0, $t0, 1			#increment counter
-		j clean
-L5:	jr $ra
-
 finish:
 	la $a0, donemsg			#load our ending message into a0
 	li $v0, 4				#set v0 to 4 for string printing
