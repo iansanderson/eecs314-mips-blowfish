@@ -174,24 +174,22 @@ ebloop:	beq $t0, $t1, endebl	#jump to the end of the loop if we've finished
 		addu $a0, $zero, $a2	#copy a2 into a0 for calling f
 		jal f					#call f
 		xor $a3, $a3, $v1		#xor a3 with the result of f and store in a3
-		addi $t4, $t4, 4		#add 1 to t4 and store in t4
-		lw $t5, ($t4)			#load the t4th element of the P array into t5
-		xor $a3, $a3, $t5		#xor a3 with t5 and store in a3
-		addu $a0, $zero, $a3	#copy a3 into a0 for calling f
-		jal f					#call f
-		xor $a2, $a2, $v1		#xor a2 with the result of f and store in a2
-		addi $t0, $t0, 2		#increment t0 by 2 for looping(invariant)
+		add $t6, $zero, $a2		#temp for swapping
+		add $a2, $zero, $a3		#put a3 in a2
+		add $a3, $zero, $t6		#put what was in a2 into a3
+		addi $t0, $t0, 1		#increment t0 by 1 for looping(invariant)
 		j ebloop					#continue the loop
 endebl:
+	add $t6, $zero, $a2		#temp for swapping
+	add $a2, $zero, $a3		#put a3 in a2
+	add $a3, $zero, $t6		#put what was in a2 into a3
 	la $t0, plist			#load the P array's address into t0
-	addiu $t0, $t0, 64		#add 64 to it for the address of the 16th element
-	lw $t1, ($t0)			#load that element into t1
-	xor $a2, $a2, $t1		#xor a2 with the 16th element of the P array, store in a2
-	addiu $t0, $t0, 4		#add 4 more for the 17th element
-	lw $t1, ($t0)			#load that element into t1
-	xor $a3, $a3, $t1		#xor a3 with the 17th element of the P array, store in a3
-	addu $v0, $zero, $a3	#return a3 as "L"
-	addu $v1, $zero, $a2	#return a2 as "R"
+	lw $t1, 64($t0)			#load the 16th element into t1
+	xor $a3, $a3, $t1		#right ^= P[16]
+	lw $t1, 68, ($t0)		#load the 17th element
+	xor $a2, $a2, $t1		#left ^= P[17]
+	addu $v0, $zero, $a2	#return a2 as "L"
+	addu $v1, $zero, $a3	#return a3 as "R"
 	addu $ra, $zero, $s2	#copy s2 back to ra to return to (hopefully) keysched
 	jr $ra
 
@@ -206,26 +204,26 @@ dbloop:	beq $t0, $t1, enddbl	#jump to the end of the loop if we've finished
 		addi $t4, $t4, 4		#add 4 to t4 and store in t4
 		lw $t5, ($t4)			#load that element into t5
 		xor $a2, $a2, $t5		#xor a2 with t5 and store in a2
-		addu $a0, $zero, $a2		#copy a2 into a0 for calling f
+		addu $a0, $zero, $a2	#copy a2 into a0 for calling f
 		jal f					#call f
 		xor $a3, $a3, $v1		#xor a3 with the result of f and store in a3
-		addi $t4, $t4, -4		#subtract 4 from t4
-		lw $t5, ($t4)			#load the t4th element of the P array into t5
-		xor $a3, $a3, $t5		#xor a3 with t5 and store in a3
-		addu $a0, $zero, $a3		#copy a3 into a0 for calling f
-		jal f					#call f
-		addi $t0, $t0, -2		#decrement t0 by 2 for looping(invariant)
-		j dbloop					#continue the loop
+		add $t6, $zero, $a2		#temp for swapping
+		add $a2, $zero, $a3		#put a3 in a2
+		add $a3, $zero, $t6		#put what was in a2 into a3
+		addi $t0, $t0, -1		#decrement t0 by 1 for looping(invariant)
+		j dbloop				#continue the loop
 enddbl:
+	add $t6, $zero, $a2		#temp for swapping
+	add $a2, $zero, $a3		#put a3 in a2
+	add $a3, $zero, $t6		#put what was in a2 into a3
 	la $t0, plist			#load the P array's address into t0
-	lw $t1, ($t0)			#load that element into t1
-	xor $a3, $a3, $t1		#xor a3 with the 0th element of the P array, store in a3
-	addiu $t0, $t0, 4		#add 4 to it for the address of the 1st element
-	lw $t1, ($t0)			#load that element into t1
-	xor $a2, $a2, $t1		#xor a2 with the 1st element of the P array, store in a2
-	addu $v0, $zero, $a3		#return a3 as "L"
-	addu $v1, $zero, $a2		#return a2 as "R"
-	addu $ra, $zero, $s2		#copy s2 back to ra to return to (hopefully) keysched
+	lw $t1, 4($t0)			#load that element into t1
+	xor $a3, $a3, $t1		#right ^= P[1]
+	lw $t1, ($t0)
+	xor $a2, $a2, $t1		#left ^= P[0]
+	addu $v0, $zero, $a2	#return a2 as "L"
+	addu $v1, $zero, $a3	#return a3 as "R"
+	addu $ra, $zero, $s2	#copy s2 back to ra to return to (hopefully) keysched
 	jr $ra
 
 keysched:					#takes a0 as "key[]" and a1 as "keylen"
