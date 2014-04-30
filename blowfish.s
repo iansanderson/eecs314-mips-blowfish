@@ -9,7 +9,7 @@ main:
 	syscall
 	la $a0, pockey			#load the key's address into a0 for keyschedule
 	li $a1, 1				#load the key's length, 1, into a1 for keyschedule
-#	jal keysched			#call keyschedule.
+	jal keysched			#call keyschedule.
 	li $t2, 4096			#set t2 to the length of the buffer because for now we don't care about output size efficiency.
 	la $a0, inputbuff		#load the input buffer's location for dencrypt
 	add $a1, $zero, $t2		#load the length of the buffer's contents into a1
