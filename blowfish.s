@@ -9,7 +9,7 @@ main:
 	syscall
 	la $a0, pockey			#load the key's address into a0 for keyschedule
 	li $a1, 1				#load the key's length, 1, into a1 for keyschedule
-#	jal keysched			#call keyschedule.
+	jal keysched			#call keyschedule.
 	li $t2, 4096			#set t2 to the length of the buffer because for now we don't care about output size efficiency.
 	la $a0, inputbuff		#load the input buffer's location for dencrypt
 	add $a1, $zero, $t2		#load the length of the buffer's contents into a1
@@ -341,22 +341,6 @@ endkl6:
 	add $ra, $zero, $s1		#copy s1 back to ra to return to (hopefully) main
 	jr $ra
 
-testinput:
-	li $t0, 1				#load 1 into t0
-	bne $v0, $t0, tt		#test v0 against t0 (1). if they're unequal, go to where we test it against 2.
-	jr $ra					#otherwise, return to where we came from
-tt:		li $t0, 2				#load 2 into t0
-		bne $v0, $t0, invalid	#if v0 and t0 are still unequal we got neither 1 nor 2, input invalid.
-	jr $ra					#otherwise, jump back to where we came from
-
-invalid:
-	la $a0, invalidinput	#load our invalidity notice into a0
-	li $v0, 4				#set v0 to 4 for string printing
-	syscall					#print the notice
-	li $a0, 1				#set a0 to 1, an arbitrary error code
-	li $v0, 17				#set v0 to 17 for exiting with a code
-	syscall					#exit with code a0
-
 finish:
 	la $a0, donemsg			#load our ending message into a0
 	li $v0, 4				#set v0 to 4 for string printing
@@ -365,8 +349,6 @@ finish:
 	syscall					#exit
 
 .data
-#ifilebuff: .space 1600
-#ofilebuff: .space 1600
 inputbuff: .space 4096
 buffer: .space 64
 plist: .word 0x243f6a88, 0x85a308d3, 0x13198a2e, 0x03707344, 0xa4093822, 0x299f31d0, 0x082efa98, 0xec4e6c89, 0x452821e6, 0x38d01377, 0xbe5466cf, 0x34e90c6c, 0xc0ac29b7, 0xc97c50dd, 0x3f84d5b5, 0xb5470917, 0x9216d5d9, 0x8979fb1b
@@ -377,12 +359,10 @@ slistfour: .word 0x3a39ce37, 0xd3faf5cf, 0xabc27737, 0x5ac52d1b, 0x5cb0679e, 0x4
 pockey: .word 0xabcdef01 #1 elements(32 bits), Proof Of Concept key
 behaviorprompt: .asciiz "Are we encrypting(1) or decrypting(2)? "
 invalidinput: .asciiz "Invalid input. Exiting. \n"
-#ifileprompt: .asciiz "Please enter the full path of the input file(max 200 characters): "
-#ofileprompt: .asciiz "Please enter the full path to where you wish the result to appear(max 200 characters): "
 inputprompt: .asciiz "Please enter the text you wish to encrypt:\n"
 eoutputtext: .asciiz "Here is your encrypted output:\n"
-doutputtext: .asciiz "And here that is, decrypted:\n"
-donemsg: .asciiz "Complete! \n"
+doutputtext: .asciiz "\nAnd here that is, decrypted:\n"
+donemsg: .asciiz "\nComplete! \n"
 mainloopbegin: .asciiz "main loop about to begin \n"
 keyscheddone: .asciiz "keyschedule done\n"
 nl: .asciiz "\n"
